@@ -1,176 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI-RPG-Alpha - Text-Based Adventure</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI-RPG Alpha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    :root {
+      --clr-bg: #0e0f16;
+      --clr-surface: #1a1c26cc;
+      --clr-primary: #9d7dff;
+      --clr-accent: #e07b67;
+      --clr-text: #f1f0ff;
+    }
+    body {
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      font-family: "Inter", Arial, sans-serif;
+      min-height: 100vh;
+    }
+    .container {
+      width: min(90%, 1200px);
+      margin-inline: auto;
+    }
+    .glass {
+      background: var(--clr-surface);
+      backdrop-filter: blur(12px) saturate(120%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 1.5rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      padding: 2rem;
+    }
+    /* Demo buttons, etc. */
+    .cta-btn { background: var(--clr-primary); color:white; padding:0.8em 2em; border-radius:2em; font-weight:600; border:none; cursor:pointer; }
+    .choice-btn { background: var(--clr-surface); border:1px solid var(--clr-primary); color:var(--clr-text); border-radius:1em; padding:0.7em 1.5em; margin:0.5em 0.5em 0 0; font-weight:600; cursor:pointer; }
+  </style>
 </head>
 <body>
-    <div class="game-container">
-        <!-- Header -->
-        <header class="game-header">
-            <h1 class="game-title">AI-RPG-Alpha</h1>
-            <div class="game-subtitle">An AI-Driven Text Adventure</div>
-        </header>
+  <!-- HERO SECTION, FEATURES VS. BURADA OLABİLİR -->
 
-        <!-- Main Game Area -->
-        <main class="game-main">
-            <!-- Player Info Panel -->
-            <aside class="player-panel">
-                <div class="player-info">
-                    <h2 class="player-name" id="playerName">Adventurer</h2>
-                    <div class="player-stats">
-                        <div class="stat-group">
-                            <div class="stat-item">
-                                <span class="stat-label">Level</span>
-                                <span class="stat-value" id="playerLevel">1</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Health</span>
-                                <div class="stat-bar">
-                                    <div class="stat-bar-fill health-bar" id="healthBar" style="width: 100%"></div>
-                                    <span class="stat-bar-text" id="healthText">100/100</span>
-                                </div>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Mana</span>
-                                <div class="stat-bar">
-                                    <div class="stat-bar-fill mana-bar" id="manaBar" style="width: 100%"></div>
-                                    <span class="stat-bar-text" id="manaText">50/50</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="attributes">
-                            <div class="attribute">
-                                <span class="attr-label">STR</span>
-                                <span class="attr-value" id="strengthValue">10</span>
-                            </div>
-                            <div class="attribute">
-                                <span class="attr-label">INT</span>
-                                <span class="attr-value" id="intelligenceValue">10</span>
-                            </div>
-                            <div class="attribute">
-                                <span class="attr-label">CHA</span>
-                                <span class="attr-value" id="charismaValue">10</span>
-                            </div>
-                        </div>
-                    </div>
+  <!-- Demo Alanı: -->
+  <section id="play" style="min-height:50vh; display:grid; place-items:center;"></section>
 
-                    <div class="location-info">
-                        <h3>Location</h3>
-                        <div class="current-location" id="currentLocation">Starting Village</div>
-                    </div>
-
-                    <div class="inventory-section">
-                        <h3>Inventory</h3>
-                        <div class="inventory-list" id="inventoryList">
-                            <div class="inventory-empty">No items</div>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- Game Content Area -->
-            <section class="game-content">
-                <!-- Narrative Display -->
-                <div class="narrative-container">
-                    <div class="narrative-text" id="narrativeText">
-                        <div class="welcome-message">
-                            <h2>Welcome to AI-RPG-Alpha!</h2>
-                            <p>Enter your name to begin your adventure in a world where every choice shapes your destiny. 
-                            This AI-driven text adventure will respond to your decisions with unique narratives and consequences.</p>
-                            <p>Your journey awaits...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Player Input Area -->
-                <div class="input-container">
-                    <div class="player-setup" id="playerSetup">
-                        <div class="setup-form">
-                            <label for="playerNameInput">Enter your name:</label>
-                            <input type="text" id="playerNameInput" placeholder="Your character name" maxlength="20">
-                            <button id="startGameBtn" class="start-btn">Begin Adventure</button>
-                        </div>
-                    </div>
-
-                    <div class="choice-container" id="choiceContainer" style="display: none;">
-                        <h3>What do you choose?</h3>
-                        <div class="choices" id="choicesList">
-                            <!-- Choices will be populated by JavaScript -->
-                        </div>
-                    </div>
-
-                    <div class="custom-input-container" id="customInputContainer" style="display: none;">
-                        <div class="input-group">
-                            <input type="text" id="customChoiceInput" placeholder="Describe your action..." maxlength="200">
-                            <button id="submitCustomChoice" class="submit-btn">Submit</button>
-                        </div>
-                        <button id="showChoicesBtn" class="toggle-btn">Show Suggested Choices</button>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- Game Controls -->
-        <div class="game-controls">
-            <button id="toggleInputMode" class="control-btn" style="display: none;">
-                <span id="inputModeText">Custom Input</span>
-            </button>
-            <button id="saveGameBtn" class="control-btn" style="display: none;">Save Game</button>
-            <button id="loadGameBtn" class="control-btn" style="display: none;">Load Game</button>
-            <button id="newGameBtn" class="control-btn" style="display: none;">New Game</button>
-        </div>
-
-        <!-- Status Messages -->
-        <div class="status-container" id="statusContainer">
-            <!-- Status messages will appear here -->
-        </div>
-
-        <!-- Loading Indicator -->
-        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
-            <div class="loading-spinner">
-                <div class="spinner"></div>
-                <div class="loading-text">The AI is crafting your story...</div>
-            </div>
-        </div>
-
-        <!-- Audio Element for Background Music -->
-        <audio id="backgroundMusic" loop>
-            <source src="assets/music/calm.mp3" type="audio/mpeg">
-            <source src="assets/music/mystery.mp3" type="audio/mpeg">
-            <source src="assets/music/combat.mp3" type="audio/mpeg">
-            Your browser does not support the audio element.
-        </audio>
-
-        <!-- Music Controls -->
-        <div class="music-controls">
-            <button id="toggleMusicBtn" class="music-btn" title="Toggle Music">
-                <span class="music-icon">🎵</span>
-            </button>
-            <div class="volume-control">
-                <input type="range" id="volumeSlider" min="0" max="100" value="30" class="volume-slider">
-            </div>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="game-footer">
-        <div class="footer-content">
-            <p>&copy; 2024 AI-RPG-Alpha v0.1.0 - An AI-Driven Text Adventure Engine</p>
-            <div class="footer-links">
-                <span class="api-status" id="apiStatus">API: Checking...</span>
-                <span class="turn-counter">Turn: <span id="turnCounter">0</span></span>
-            </div>
-        </div>
-    </footer>
-
-    <script src="script.js"></script>
+  <footer style="background:#0b0c12; text-align:center; opacity:.8; font-size:0.9rem; padding:2rem;">
+    © 2025 AI-RPG Alpha • Built by two friends for players everywhere.
+  </footer>
+  
+  <script src="script.js"></script>
 </body>
 </html>
-
