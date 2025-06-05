@@ -1,175 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI‑RPG Alpha</title>
-    <!-- Google Font → replace later if you like -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-    <style>
-      /* ====== COLOR THEME VARIABLES (replace with mood‑board values) ====== */
-      :root {
-        --clr-bg: #0e0f16;
-        --clr-surface: #1a1c26cc; /* glassy */
-        --clr-primary: #9d7dff;
-        --clr-accent: #e07b67;
-        --clr-text: #f1f0ff;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI-RPG Alpha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    :root {
+      --clr-bg: #0e0f16;
+      --clr-surface: #1a1c26cc;
+      --clr-primary: #9d7dff;
+      --clr-accent: #e07b67;
+      --clr-text: #f1f0ff;
+    }
+    body {
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      font-family: "Inter", Arial, sans-serif;
+      min-height: 100vh;
+    }
+    .container {
+      width: min(90%, 1200px);
+      margin-inline: auto;
+    }
+    .glass {
+      background: var(--clr-surface);
+      backdrop-filter: blur(12px) saturate(120%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 1.5rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      padding: 2rem;
+    }
+    /* Demo buttons, etc. */
+    .cta-btn { background: var(--clr-primary); color:white; padding:0.8em 2em; border-radius:2em; font-weight:600; border:none; cursor:pointer; }
+    .choice-btn { background: var(--clr-surface); border:1px solid var(--clr-primary); color:var(--clr-text); border-radius:1em; padding:0.7em 1.5em; margin:0.5em 0.5em 0 0; font-weight:600; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <!-- HERO SECTION, FEATURES VS. BURADA OLABİLİR -->
 
-      /* ====== RESET / BASE ====== */
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      body {
-        font-family: "Inter", Arial, sans-serif;
-        background: var(--clr-bg);
-        color: var(--clr-text);
-        line-height: 1.6;
-        -webkit-font-smoothing: antialiased;
-      }
-      img {
-        max-width: 100%;
-        display: block;
-      }
-      a {
-        color: inherit;
-        text-decoration: none;
-      }
+  <!-- Demo Alanı: -->
+  <section id="play" style="min-height:50vh; display:grid; place-items:center;"></section>
 
-      /* ====== LAYOUT HELPERS ====== */
-      .container {
-        width: min(90%, 1200px);
-        margin-inline: auto;
-      }
-      .glass {
-        background: var(--clr-surface);
-        backdrop-filter: blur(12px) saturate(120%);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 1.5rem;
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
-        padding: 2rem;
-      }
-
-      /* ====== HERO SECTION ====== */
-      header {
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        background: radial-gradient(circle at top, rgba(157, 125, 255, 0.15), transparent 70%), var(--clr-bg);
-      }
-      .hero-content {
-        text-align: center;
-      }
-      .hero-title {
-        font-family: "Cinzel", serif;
-        font-size: clamp(2.5rem, 6vw, 4rem);
-        letter-spacing: 0.05em;
-        margin-bottom: 0.75rem;
-      }
-      .hero-sub {
-        font-size: clamp(1rem, 2.5vw, 1.25rem);
-        max-width: 40ch;
-        margin-inline: auto;
-        opacity: 0.9;
-      }
-      .cta-btn {
-        display: inline-block;
-        margin-top: 2rem;
-        background: var(--clr-primary);
-        padding: 0.9rem 2.5rem;
-        border-radius: 2rem;
-        font-size: 1rem;
-        font-weight: 600;
-        transition: transform 0.2s ease;
-      }
-      .cta-btn:hover {
-        transform: translateY(-3px);
-      }
-
-      /* ====== FEATURES SECTION ====== */
-      section.features {
-        padding-block: 4rem 6rem;
-      }
-      .features-grid {
-        display: grid;
-        gap: 2rem;
-      }
-      @media (min-width: 700px) {
-        .features-grid {
-          grid-template-columns: repeat(3, 1fr);
-        }
-      }
-      .feature-card {
-        text-align: center;
-      }
-      .feature-icon {
-        font-size: 2.75rem;
-        color: var(--clr-accent);
-        margin-bottom: 1rem;
-      }
-      .feature-title {
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-      }
-
-      /* ====== FOOTER ====== */
-      footer {
-        background: #0b0c12;
-        padding-block: 2rem;
-        text-align: center;
-        font-size: 0.9rem;
-        opacity: 0.8;
-      }
-    </style>
-  </head>
-  <body>
-    <!-- ===== HERO ===== -->
-    <header>
-      <div class="container hero-content glass">
-        <h1 class="hero-title">AI‑RPG Alpha</h1>
-        <p class="hero-sub">A narrative-driven text adventure that remembers every choice you make — and makes you pay (or profit) for it later.</p>
-        <a href="#play" class="cta-btn">Play Demo</a>
-      </div>
-    </header>
-
-    <!-- ===== FEATURES ===== -->
-    <section class="features container">
-      <h2 style="text-align:center; font-family:'Cinzel',serif; margin-bottom:2.5rem; font-size:2rem;">Why You’ll Love It</h2>
-      <div class="features-grid">
-        <div class="feature-card glass">
-          <div class="feature-icon">🧠</div>
-          <div class="feature-title">Living Memory</div>
-          <p>Our hybrid SQLite + vector memory means the world actually <em>remembers</em> your deeds.</p>
-        </div>
-        <div class="feature-card glass">
-          <div class="feature-icon">⚔️</div>
-          <div class="feature-title">Tension‑First Combat</div>
-          <p>Narrative combat keeps the drama high — no endless dice math, pure story stakes.</p>
-        </div>
-        <div class="feature-card glass">
-          <div class="feature-icon">🎵</div>
-          <div class="feature-title">Adaptive Music</div>
-          <p>Hand‑crafted loops blend on the fly to match danger, mystery, or calm exploration.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== FOOTER ===== -->
-    <footer>
-      <p>© 2025 AI‑RPG Alpha • Built by two friends for players everywhere.</p>
-    </footer>
-
-    <!-- ===== SCROLL TARGET (in‑game) ===== -->
-    <section id="play" style="min-height:50vh; display:grid; place-items:center;">
-      <div class="container glass" style="text-align:center;">
-        <p style="font-size:1.25rem; margin-bottom:1rem;">🎮 The interactive demo will load here soon.</p>
-        <p>We’re still wiring up the back‑end. Follow our progress or join our alpha mailing list!</p>
-      </div>
-    </section>
-
-  </body>
+  <footer style="background:#0b0c12; text-align:center; opacity:.8; font-size:0.9rem; padding:2rem;">
+    © 2025 AI-RPG Alpha • Built by two friends for players everywhere.
+  </footer>
+  
+  <script src="script.js"></script>
+</body>
 </html>
