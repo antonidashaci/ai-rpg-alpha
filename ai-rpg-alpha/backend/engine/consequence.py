@@ -6,32 +6,14 @@ It manages events that trigger after certain conditions are met,
 such as turn-based delays, location changes, or story progression.
 """
 
-from typing import Dict, Any, List, Optional, Callable
+from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
-from enum import Enum
 import json
 
 from models.dataclasses import Player, ConsequenceThread, GameEvent
 from dao.game_state import GameStateDAO
-
-class ConsequenceTrigger(Enum):
-    """Types of consequence triggers"""
-    TURN_BASED = "turn_based"          # Triggers after X turns
-    LOCATION_BASED = "location_based"  # Triggers when entering location
-    QUEST_BASED = "quest_based"        # Triggers on quest completion/failure
-    STAT_BASED = "stat_based"          # Triggers when stat reaches threshold
-    TIME_BASED = "time_based"          # Triggers after real time delay
-    CHOICE_BASED = "choice_based"      # Triggers on specific choice
-
-class ConsequenceType(Enum):
-    """Types of consequences"""
-    NARRATIVE = "narrative"            # Story event
-    STAT_CHANGE = "stat_change"        # Modify player stats
-    INVENTORY = "inventory"            # Add/remove items
-    QUEST_UNLOCK = "quest_unlock"      # Make new quest available
-    LOCATION_CHANGE = "location_change" # Force location change
-    NPC_INTERACTION = "npc_interaction" # Trigger NPC event
-    WORLD_STATE = "world_state"        # Change world state
+from .consequence_types import ConsequenceTrigger, ConsequenceType
+from .consequence_handlers import ConsequenceHandlers
 
 class ConsequenceScheduler:
     """
@@ -50,14 +32,15 @@ class ConsequenceScheduler:
         """
         self.game_dao = game_dao
         self.active_consequences = {}  # player_id -> list of consequences
+        self.handlers = ConsequenceHandlers(game_dao)
         self.consequence_handlers = {
-            ConsequenceType.NARRATIVE: self._handle_narrative_consequence,
-            ConsequenceType.STAT_CHANGE: self._handle_stat_change_consequence,
-            ConsequenceType.INVENTORY: self._handle_inventory_consequence,
-            ConsequenceType.QUEST_UNLOCK: self._handle_quest_unlock_consequence,
-            ConsequenceType.LOCATION_CHANGE: self._handle_location_change_consequence,
-            ConsequenceType.NPC_INTERACTION: self._handle_npc_interaction_consequence,
-            ConsequenceType.WORLD_STATE: self._handle_world_state_consequence
+            ConsequenceType.NARRATIVE: self.handlers.handle_narrative_consequence,
+            ConsequenceType.STAT_CHANGE: self.handlers.handle_stat_change_consequence,
+            ConsequenceType.INVENTORY: self.handlers.handle_inventory_consequence,
+            ConsequenceType.QUEST_UNLOCK: self.handlers.handle_quest_unlock_consequence,
+            ConsequenceType.LOCATION_CHANGE: self.handlers.handle_location_change_consequence,
+            ConsequenceType.NPC_INTERACTION: self.handlers.handle_npc_interaction_consequence,
+            ConsequenceType.WORLD_STATE: self.handlers.handle_world_state_consequence
         }
     
     def schedule_consequence(
@@ -354,159 +337,7 @@ class ConsequenceScheduler:
         
         return None
     
-    def _handle_narrative_consequence(
-        self,
-        data: Dict[str, Any],
-        player: Player,
-        context: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
-        """Handle narrative consequence"""
-        narrative_text = data.get("narrative", "Something significant happens.")
-        
-        return {
-            "type": "narrative",
-            "narrative": narrative_text,
-            "title": data.get("title", "A Consequence Unfolds")
-        }
-    
-    def _handle_stat_change_consequence(
-        self,
-        data: Dict[str, Any],
-        player: Player,
-        context: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
-        """Handle stat change consequence"""
-        stat_changes = data.get("stat_changes", {})
-        applied_changes = {}
-        
-        for stat_name, change in stat_changes.items():
-            if hasattr(player.stats, stat_name):
-                old_value = getattr(player.stats, stat_name)
-                new_value = max(0, old_value + change)  # Don't go below 0
-                setattr(player.stats, stat_name, new_value)
-                applied_changes[stat_name] = {"old": old_value, "new": new_value, "change": change}
-        
-        # Update player in database
-        self.game_dao.update_player(player)
-        
-        return {
-            "type": "stat_change",
-            "changes": applied_changes,
-            "message": data.get("message", "Your abilities have changed.")
-        }
-    
-    def _handle_inventory_consequence(
-        self,
-        data: Dict[str, Any],
-        player: Player,
-        context: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
-        """Handle inventory consequence"""
-        items_to_add = data.get("add_items", [])
-        items_to_remove = data.get("remove_items", [])
-        
-        added = []
-        removed = []
-        
-        # Add items
-        for item in items_to_add:
-            player.inventory.append(item)
-            added.append(item)
-        
-        # Remove items
-        for item in items_to_remove:
-            if item in player.inventory:
-                player.inventory.remove(item)
-                removed.append(item)
-        
-        # Update player in database
-        self.game_dao.update_player(player)
-        
-        return {
-            "type": "inventory",
-            "added": added,
-            "removed": removed,
-            "message": data.get("message", "Your inventory has changed.")
-        }
-    
-    def _handle_quest_unlock_consequence(
-        self,
-        data: Dict[str, Any],
-        player: Player,
-        context: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
-        """Handle quest unlock consequence"""
-        quest_id = data.get("quest_id")
-        
-        if quest_id:
-            # In a full implementation, this would modify quest availability
-            # For now, just return the information
-            return {
-                "type": "quest_unlock",
-                "quest_id": quest_id,
-                "message": data.get("message", f"A new quest '{quest_id}' is now available!")
-            }
-        
-        return {"type": "quest_unlock", "message": "No quest to unlock."}
-    
-    def _handle_location_change_consequence(
-        self,
-        data: Dict[str, Any],
-        player: Player,
-        context: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
-        """Handle location change consequence"""
-        new_location = data.get("location")
-        
-        if new_location:
-            old_location = player.current_location
-            player.current_location = new_location
-            
-            # Update player in database
-            self.game_dao.update_player(player)
-            
-            return {
-                "type": "location_change",
-                "old_location": old_location,
-                "new_location": new_location,
-                "message": data.get("message", f"You have been transported to {new_location}.")
-            }
-        
-        return {"type": "location_change", "message": "No location change occurred."}
-    
-    def _handle_npc_interaction_consequence(
-        self,
-        data: Dict[str, Any],
-        player: Player,
-        context: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
-        """Handle NPC interaction consequence"""
-        npc_name = data.get("npc_name", "A mysterious figure")
-        interaction_text = data.get("interaction", "approaches you with something important to say.")
-        
-        return {
-            "type": "npc_interaction",
-            "npc_name": npc_name,
-            "interaction": interaction_text,
-            "message": f"{npc_name} {interaction_text}"
-        }
-    
-    def _handle_world_state_consequence(
-        self,
-        data: Dict[str, Any],
-        player: Player,
-        context: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
-        """Handle world state consequence"""
-        world_changes = data.get("world_changes", {})
-        
-        # In a full implementation, this would modify global world state
-        # For now, just return the information
-        return {
-            "type": "world_state",
-            "changes": world_changes,
-            "message": data.get("message", "The world around you has changed.")
-        }
+
     
     def _log_consequence_execution(
         self,
