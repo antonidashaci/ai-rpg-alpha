@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Adventure - AI-RPG-Alpha</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="scenario-container">
+        <header class="scenario-header">
+            <h1 class="game-title">AI-RPG-Alpha</h1>
+            <div class="game-subtitle">Choose Your Adventure</div>
+        </header>
+
+        <main class="scenario-main">
+            <div class="scenario-grid">
+                <!-- The Northern Realms -->
+                <div class="scenario-card" data-scenario="northern_realms">
+                    <div class="scenario-image northern-realms-bg"></div>
+                    <div class="scenario-content">
+                        <h2>The Northern Realms</h2>
+                        <div class="scenario-genre">Epic Fantasy</div>
+                        <p class="scenario-description">
+                            Ancient dragons stir in forgotten mountain peaks. Magic flows through mystical ley lines, and kingdoms rise and fall by the strength of heroes. Your choices will shape the fate of entire realms.
+                        </p>
+                        <div class="scenario-features">
+                            <span class="feature-tag">⚔️ Epic Battles</span>
+                            <span class="feature-tag">🏰 Political Intrigue</span>
+                            <span class="feature-tag">🔮 Ancient Magic</span>
+                        </div>
+                        <button class="scenario-btn primary" data-scenario="northern_realms">Begin Epic Quest</button>
+                    </div>
+                </div>
+
+                <!-- The Whispering Town -->
+                <div class="scenario-card featured" data-scenario="whispering_town">
+                    <div class="scenario-image whispering-town-bg"></div>
+                    <div class="scenario-content">
+                        <h2>The Whispering Town</h2>
+                        <div class="scenario-genre">Cosmic Horror</div>
+                        <div class="featured-badge">RECOMMENDED</div>
+                        <p class="scenario-description">
+                            Reality grows thin in this forgotten New England town. Ancient whispers carry forbidden knowledge, and your sanity hangs by a thread. Some truths are too terrible to know.
+                        </p>
+                        <div class="scenario-features">
+                            <span class="feature-tag">🧠 Sanity System</span>
+                            <span class="feature-tag">👁️ Cosmic Knowledge</span>
+                            <span class="feature-tag">🌊 Reality Distortion</span>
+                        </div>
+                        <button class="scenario-btn primary horror" data-scenario="whispering_town">Enter the Unknown</button>
+                    </div>
+                </div>
+
+                <!-- Neo-Tokyo 2087 -->
+                <div class="scenario-card" data-scenario="neo_tokyo">
+                    <div class="scenario-image neo-tokyo-bg"></div>
+                    <div class="scenario-content">
+                        <h2>Neo-Tokyo 2087</h2>
+                        <div class="scenario-genre">Cyberpunk Dystopia</div>
+                        <p class="scenario-description">
+                            Neon lights pierce through acid rain as corporate overlords control humanity's digital souls. In this chrome-plated nightmare, information is power, and power corrupts everything.
+                        </p>
+                        <div class="scenario-features">
+                            <span class="feature-tag">🤖 Cybernetics</span>
+                            <span class="feature-tag">💾 Data Warfare</span>
+                            <span class="feature-tag">🏙️ Urban Decay</span>
+                        </div>
+                        <button class="scenario-btn primary cyber" data-scenario="neo_tokyo">Jack In</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="scenario-footer">
+            <p>Each scenario offers unique mechanics, storylines, and progression systems.</p>
+            <p>Your choices will have lasting consequences across 30-40 turn epic adventures.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const scenarioButtons = document.querySelectorAll('.scenario-btn');
+            
+            scenarioButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const scenario = this.getAttribute('data-scenario');
+                    
+                    // Store selected scenario
+                    localStorage.setItem('selectedScenario', scenario);
+                    
+                    // Redirect to main game
+                    window.location.href = 'index.html';
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

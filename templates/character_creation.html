@@ -1,0 +1,637 @@
+{% extends "base.html" %}
+
+{% block title %}AI RPG Alpha - Create Character{% endblock %}
+
+{% block additional_css %}
+<style>
+    .character-creation {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: var(--space-xl);
+        min-height: calc(100vh - 64px);
+    }
+    
+    .creation-header {
+        text-align: center;
+        margin-bottom: var(--space-xl);
+    }
+    
+    .creation-title {
+        font-family: var(--font-display);
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: var(--space-md);
+    }
+    
+    .creation-subtitle {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin-bottom: var(--space-lg);
+    }
+    
+    .scenario-info {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: var(--space-lg);
+        margin-bottom: var(--space-xl);
+        border-left: 4px solid var(--accent-orange);
+    }
+    
+    .scenario-title {
+        color: var(--accent-orange);
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: var(--space-sm);
+    }
+    
+    .character-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-xl);
+    }
+    
+    .form-section {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: var(--space-lg);
+    }
+    
+    .section-title {
+        font-weight: 700;
+        color: white;
+        margin-bottom: var(--space-lg);
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+    }
+    
+    .form-group {
+        margin-bottom: var(--space-lg);
+    }
+    
+    .form-label {
+        display: block;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: var(--space-sm);
+        font-weight: 600;
+    }
+    
+    .form-input, .form-select {
+        width: 100%;
+        background: var(--bg-hover);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: var(--space-sm);
+        color: var(--text-primary);
+        font-size: 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--accent-orange);
+        box-shadow: 0 0 0 2px rgba(255, 140, 66, 0.1);
+    }
+    
+    .ability-scores {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-md);
+    }
+    
+    .ability-group {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--bg-hover);
+        padding: var(--space-sm);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+    }
+    
+    .ability-name {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .ability-controls {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+    }
+    
+    .ability-btn {
+        background: var(--accent-orange);
+        border: none;
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+    
+    .ability-btn:hover {
+        background: var(--accent-orange-hover);
+        transform: scale(1.1);
+    }
+    
+    .ability-btn:disabled {
+        background: var(--text-muted);
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .ability-score {
+        color: white;
+        font-weight: 700;
+        min-width: 20px;
+        text-align: center;
+    }
+    
+    .ability-modifier {
+        color: var(--accent-blue);
+        font-size: 0.8rem;
+        min-width: 25px;
+        text-align: center;
+    }
+    
+    .points-remaining {
+        text-align: center;
+        background: var(--bg-hover);
+        padding: var(--space-md);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--space-lg);
+    }
+    
+    .points-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin-bottom: var(--space-xs);
+    }
+    
+    .points-value {
+        color: var(--accent-orange);
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+    
+    .character-preview {
+        background: var(--bg-hover);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: var(--space-lg);
+        margin-top: var(--space-lg);
+    }
+    
+    .preview-title {
+        color: var(--accent-orange);
+        font-weight: 700;
+        margin-bottom: var(--space-md);
+        text-align: center;
+    }
+    
+    .preview-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-sm);
+        text-align: center;
+        font-size: 0.9rem;
+    }
+    
+    .preview-stat {
+        color: var(--text-secondary);
+    }
+    
+    .preview-value {
+        color: white;
+        font-weight: 600;
+    }
+    
+    .form-actions {
+        grid-column: 1 / -1;
+        text-align: center;
+        margin-top: var(--space-xl);
+    }
+    
+    .create-btn {
+        background: var(--accent-orange);
+        border: none;
+        color: white;
+        padding: var(--space-md) var(--space-xl);
+        border-radius: var(--radius-lg);
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+    }
+    
+    .create-btn:hover {
+        background: var(--accent-orange-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(255, 140, 66, 0.3);
+    }
+    
+    .create-btn:disabled {
+        background: var(--text-muted);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .random-btn {
+        background: var(--accent-blue);
+        border: none;
+        color: white;
+        padding: var(--space-sm) var(--space-md);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-left: var(--space-md);
+        transition: all 0.2s ease;
+    }
+    
+    .random-btn:hover {
+        background: var(--accent-blue-hover);
+    }
+    
+    @media (max-width: 768px) {
+        .character-form {
+            grid-template-columns: 1fr;
+            gap: var(--space-lg);
+        }
+        
+        .ability-scores {
+            grid-template-columns: 1fr;
+        }
+        
+        .preview-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="character-creation">
+    <div class="creation-header">
+        <h1 class="creation-title">Create Your Character</h1>
+        <p class="creation-subtitle">Forge your destiny in the world of adventure</p>
+    </div>
+    
+    <div class="scenario-info" id="scenarioInfo">
+        <div class="scenario-title">Northern Realms - Elder Scrolls Adventure</div>
+        <p>You are about to enter the ancient continent of Tamriel, where the Elder Scrolls have foretold of great changes. Create a character who will seek balance in a world torn by conflict.</p>
+    </div>
+    
+    <form class="character-form" id="characterForm">
+        <!-- Basic Information -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-user"></i>
+                Basic Information
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="characterName">Character Name</label>
+                <input type="text" id="characterName" class="form-input" value="Ra'el" placeholder="Enter character name">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="characterRace">Race</label>
+                <select id="characterRace" class="form-select">
+                    <option value="human">Human</option>
+                    <option value="elf">Elf</option>
+                    <option value="dwarf">Dwarf</option>
+                    <option value="halfling">Halfling</option>
+                    <option value="orc">Orc</option>
+                    <option value="tiefling">Tiefling</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="characterClass">Class</label>
+                <select id="characterClass" class="form-select">
+                    <option value="monk">Monk</option>
+                    <option value="fighter">Fighter</option>
+                    <option value="wizard">Wizard</option>
+                    <option value="rogue">Rogue</option>
+                    <option value="cleric">Cleric</option>
+                    <option value="ranger">Ranger</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="characterBackground">Background</label>
+                <select id="characterBackground" class="form-select">
+                    <option value="hermit">Hermit</option>
+                    <option value="soldier">Soldier</option>
+                    <option value="scholar">Scholar</option>
+                    <option value="criminal">Criminal</option>
+                    <option value="noble">Noble</option>
+                    <option value="folk_hero">Folk Hero</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Ability Scores -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-dice-d20"></i>
+                Ability Scores
+                <button type="button" class="random-btn" onclick="randomizeStats()">
+                    <i class="fas fa-random"></i> Random
+                </button>
+            </div>
+            
+            <div class="points-remaining">
+                <div class="points-label">Points Remaining</div>
+                <div class="points-value" id="pointsRemaining">27</div>
+            </div>
+            
+            <div class="ability-scores" id="abilityScores">
+                <div class="ability-group">
+                    <span class="ability-name">Strength</span>
+                    <div class="ability-controls">
+                        <button type="button" class="ability-btn" onclick="changeAbility('strength', -1)">-</button>
+                        <span class="ability-score" id="strength-score">8</span>
+                        <span class="ability-modifier" id="strength-modifier">-1</span>
+                        <button type="button" class="ability-btn" onclick="changeAbility('strength', 1)">+</button>
+                    </div>
+                </div>
+                
+                <div class="ability-group">
+                    <span class="ability-name">Dexterity</span>
+                    <div class="ability-controls">
+                        <button type="button" class="ability-btn" onclick="changeAbility('dexterity', -1)">-</button>
+                        <span class="ability-score" id="dexterity-score">15</span>
+                        <span class="ability-modifier" id="dexterity-modifier">+2</span>
+                        <button type="button" class="ability-btn" onclick="changeAbility('dexterity', 1)">+</button>
+                    </div>
+                </div>
+                
+                <div class="ability-group">
+                    <span class="ability-name">Intelligence</span>
+                    <div class="ability-controls">
+                        <button type="button" class="ability-btn" onclick="changeAbility('intelligence', -1)">-</button>
+                        <span class="ability-score" id="intelligence-score">10</span>
+                        <span class="ability-modifier" id="intelligence-modifier">+0</span>
+                        <button type="button" class="ability-btn" onclick="changeAbility('intelligence', 1)">+</button>
+                    </div>
+                </div>
+                
+                <div class="ability-group">
+                    <span class="ability-name">Wisdom</span>
+                    <div class="ability-controls">
+                        <button type="button" class="ability-btn" onclick="changeAbility('wisdom', -1)">-</button>
+                        <span class="ability-score" id="wisdom-score">15</span>
+                        <span class="ability-modifier" id="wisdom-modifier">+2</span>
+                        <button type="button" class="ability-btn" onclick="changeAbility('wisdom', 1)">+</button>
+                    </div>
+                </div>
+                
+                <div class="ability-group">
+                    <span class="ability-name">Persuasion</span>
+                    <div class="ability-controls">
+                        <button type="button" class="ability-btn" onclick="changeAbility('persuasion', -1)">-</button>
+                        <span class="ability-score" id="persuasion-score">12</span>
+                        <span class="ability-modifier" id="persuasion-modifier">+1</span>
+                        <button type="button" class="ability-btn" onclick="changeAbility('persuasion', 1)">+</button>
+                    </div>
+                </div>
+                
+                <div class="ability-group">
+                    <span class="ability-name">Luck</span>
+                    <div class="ability-controls">
+                        <button type="button" class="ability-btn" onclick="changeAbility('luck', -1)">-</button>
+                        <span class="ability-score" id="luck-score">15</span>
+                        <span class="ability-modifier" id="luck-modifier">+2</span>
+                        <button type="button" class="ability-btn" onclick="changeAbility('luck', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="character-preview">
+                <div class="preview-title">Character Preview</div>
+                <div class="preview-stats">
+                    <div class="preview-stat">Health: <span class="preview-value" id="preview-health">20</span></div>
+                    <div class="preview-stat">AC: <span class="preview-value" id="preview-ac">15</span></div>
+                    <div class="preview-stat">Speed: <span class="preview-value" id="preview-speed">30 ft</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="button" class="create-btn" onclick="createCharacter()">
+                <i class="fas fa-play"></i>
+                Begin Adventure
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const abilityScores = {
+        strength: 8,
+        dexterity: 15,
+        intelligence: 10,
+        wisdom: 15,
+        persuasion: 12,
+        luck: 15
+    };
+    
+    let pointsUsed = 27; // Starting with 27 points used (point-buy system)
+    const maxPoints = 27;
+    
+    // Get scenario from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const scenario = urlParams.get('scenario') || 'northern-realms';
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        updateScenarioInfo();
+        updatePointsDisplay();
+        updateAllAbilities();
+        updateCharacterPreview();
+    });
+    
+    function updateScenarioInfo() {
+        const scenarioData = {
+            'northern-realms': {
+                title: 'Northern Realms - Elder Scrolls Adventure',
+                description: 'You are about to enter the ancient continent of Tamriel, where the Elder Scrolls have foretold of great changes. Create a character who will seek balance in a world torn by conflict.'
+            },
+            'whispering-town': {
+                title: 'Whispering Town - Suburban Mystery',
+                description: 'The quiet suburb of Millbrook harbors dark secrets beneath its perfect facade. Create a character who will uncover the truth lurking in the shadows.'
+            },
+            'neo-tokyo': {
+                title: 'Neo-Tokyo 2087 - Cyberpunk Future',
+                description: 'In the neon-soaked megacity of Neo-Tokyo, corporations rule with digital fists. Create a character who will navigate the dangerous world of hackers and corporate espionage.'
+            }
+        };
+        
+        const info = scenarioData[scenario] || scenarioData['northern-realms'];
+        document.querySelector('.scenario-title').textContent = info.title;
+        document.querySelector('.scenario-info p').textContent = info.description;
+    }
+    
+    function getAbilityCost(score) {
+        // Point-buy cost system (D&D 5E style)
+        const costs = {
+            8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5,
+            14: 7, 15: 9, 16: 12, 17: 15, 18: 19
+        };
+        return costs[score] || 0;
+    }
+    
+    function calculateTotalCost() {
+        let total = 0;
+        for (const ability in abilityScores) {
+            total += getAbilityCost(abilityScores[ability]);
+        }
+        return total;
+    }
+    
+    function getAbilityModifier(score) {
+        return Math.floor((score - 10) / 2);
+    }
+    
+    function changeAbility(ability, change) {
+        const newScore = abilityScores[ability] + change;
+        
+        // Check bounds
+        if (newScore < 8 || newScore > 18) return;
+        
+        // Check if we have enough points
+        const currentCost = calculateTotalCost();
+        const newCost = currentCost - getAbilityCost(abilityScores[ability]) + getAbilityCost(newScore);
+        
+        if (newCost > maxPoints) return;
+        
+        abilityScores[ability] = newScore;
+        updateAllAbilities();
+        updatePointsDisplay();
+        updateCharacterPreview();
+    }
+    
+    function updateAllAbilities() {
+        for (const ability in abilityScores) {
+            updateAbilityDisplay(ability);
+        }
+    }
+    
+    function updateAbilityDisplay(ability) {
+        const score = abilityScores[ability];
+        const modifier = getAbilityModifier(score);
+        
+        document.getElementById(`${ability}-score`).textContent = score;
+        document.getElementById(`${ability}-modifier`).textContent = modifier >= 0 ? `+${modifier}` : modifier;
+        
+        // Update button states
+        const minusBtn = document.querySelector(`[onclick="changeAbility('${ability}', -1)"]`);
+        const plusBtn = document.querySelector(`[onclick="changeAbility('${ability}', 1)"]`);
+        
+        minusBtn.disabled = score <= 8;
+        
+        // Check if we can afford to increase this ability
+        const currentCost = calculateTotalCost();
+        const increaseCost = currentCost - getAbilityCost(score) + getAbilityCost(score + 1);
+        plusBtn.disabled = score >= 18 || increaseCost > maxPoints;
+    }
+    
+    function updatePointsDisplay() {
+        const used = calculateTotalCost();
+        const remaining = maxPoints - used;
+        document.getElementById('pointsRemaining').textContent = remaining;
+        
+        if (remaining < 0) {
+            document.getElementById('pointsRemaining').style.color = '#ff4757';
+        } else if (remaining === 0) {
+            document.getElementById('pointsRemaining').style.color = '#2ed573';
+        } else {
+            document.getElementById('pointsRemaining').style.color = 'var(--accent-orange)';
+        }
+    }
+    
+    function updateCharacterPreview() {
+        const characterClass = document.getElementById('characterClass').value;
+        
+        // Calculate derived stats based on class and abilities
+        let baseHealth = 8; // Base for monk
+        if (characterClass === 'fighter') baseHealth = 10;
+        else if (characterClass === 'wizard') baseHealth = 6;
+        
+        const healthBonus = getAbilityModifier(abilityScores.strength); // Using strength for health bonus
+        const health = Math.max(1, baseHealth + healthBonus);
+        
+        const ac = 10 + getAbilityModifier(abilityScores.dexterity);
+        const speed = 30; // Base speed
+        
+        document.getElementById('preview-health').textContent = health;
+        document.getElementById('preview-ac').textContent = ac;
+        document.getElementById('preview-speed').textContent = `${speed} ft`;
+    }
+    
+    function randomizeStats() {
+        // Randomize ability scores within point-buy constraints
+        const presets = [
+            { strength: 8, dexterity: 15, intelligence: 14, wisdom: 12, persuasion: 13, luck: 10 },
+            { strength: 13, dexterity: 14, intelligence: 10, wisdom: 15, persuasion: 12, luck: 8 },
+            { strength: 12, dexterity: 13, intelligence: 15, wisdom: 10, persuasion: 14, luck: 8 },
+            { strength: 10, dexterity: 14, intelligence: 13, wisdom: 12, persuasion: 15, luck: 8 },
+            { strength: 15, dexterity: 13, intelligence: 8, wisdom: 14, persuasion: 10, luck: 12 }
+        ];
+        
+        const randomPreset = presets[Math.floor(Math.random() * presets.length)];
+        Object.assign(abilityScores, randomPreset);
+        
+        updateAllAbilities();
+        updatePointsDisplay();
+        updateCharacterPreview();
+    }
+    
+    function createCharacter() {
+        const characterData = {
+            name: document.getElementById('characterName').value || 'Adventurer',
+            race: document.getElementById('characterRace').value,
+            class: document.getElementById('characterClass').value,
+            background: document.getElementById('characterBackground').value,
+            abilities: { ...abilityScores },
+            scenario: scenario
+        };
+        
+        // Validate character
+        if (calculateTotalCost() > maxPoints) {
+            alert('Please adjust your ability scores. You have exceeded the point limit.');
+            return;
+        }
+        
+        if (!characterData.name.trim()) {
+            alert('Please enter a character name.');
+            return;
+        }
+        
+        // Save character data and start game
+        localStorage.setItem('newCharacterData', JSON.stringify(characterData));
+        window.location.href = `/game?scenario=${scenario}`;
+    }
+    
+    // Update preview when class changes
+    document.getElementById('characterClass').addEventListener('change', updateCharacterPreview);
+</script>
+{% endblock %} 

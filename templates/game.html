@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI RPG - Epic Adventures</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        
+        .game-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            height: 100vh;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .title {
+            text-align: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+        
+        .scenario-selection {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .scenario-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .scenario-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .scenario-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .game-area {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            flex: 1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+        
+        .narrative-text {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            padding: 25px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+            min-height: 200px;
+        }
+        
+        .choices-area {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .choice-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+        
+        .choice-btn:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .custom-action {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .custom-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1em;
+        }
+        
+        .custom-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .action-btn {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .stats-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .stat-bar {
+            margin-bottom: 15px;
+        }
+        
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .stat-progress {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+        }
+        
+        .stat-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .health { background: linear-gradient(90deg, #ff4757, #ff3838); }
+        .mana { background: linear-gradient(90deg, #3742fa, #2f3542); }
+        .stamina { background: linear-gradient(90deg, #2ed573, #1e90ff); }
+        .sanity { background: linear-gradient(90deg, #ffa502, #ff6348); }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #3498db;
+        }
+        
+        .scenario-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="main-content">
+            <h1 class="title">🎭 AI RPG - Epic Adventures</h1>
+            
+            <div id="scenario-selection" class="scenario-selection">
+                <h2>🌟 Choose Your Adventure</h2>
+                <div class="scenario-buttons">
+                    <button class="scenario-btn" onclick="selectScenario('northern_realms')">
+                        ⚔️ Northern Realms<br>
+                        <small>Medieval Fantasy</small>
+                    </button>
+                    <button class="scenario-btn" onclick="selectScenario('whispering_town')">
+                        🌙 Whispering Town<br>
+                        <small>Cosmic Horror</small>
+                    </button>
+                    <button class="scenario-btn" onclick="selectScenario('neo_tokyo')">
+                        🌆 Neo-Tokyo 2087<br>
+                        <small>Cyberpunk Future</small>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="game-area" class="game-area">
+                <div id="narrative" class="narrative-text">
+                    Welcome to your epic adventure...
+                </div>
+                
+                <div id="choices" class="choices-area">
+                    <!-- Choices will be populated here -->
+                </div>
+                
+                <div class="custom-action">
+                    <input type="text" id="custom-input" class="custom-input" 
+                           placeholder="Type your custom action..." maxlength="200">
+                    <button onclick="submitCustomAction()" class="action-btn">⚡ Act</button>
+                </div>
+                
+                <div id="loading" class="loading">
+                    🔮 The AI is weaving your story...
+                </div>
+            </div>
+        </div>
+        
+        <div class="sidebar">
+            <div id="stats-panel" class="stats-panel hidden">
+                <h3>📊 Character Status</h3>
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>❤️ Health</span>
+                        <span id="health-text">100/100</span>
+                    </div>
+                    <div class="stat-progress">
+                        <div id="health-bar" class="stat-fill health" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>🔮 Mana</span>
+                        <span id="mana-text">100/100</span>
+                    </div>
+                    <div class="stat-progress">
+                        <div id="mana-bar" class="stat-fill mana" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>⚡ Stamina</span>
+                        <span id="stamina-text">100/100</span>
+                    </div>
+                    <div class="stat-progress">
+                        <div id="stamina-bar" class="stat-fill stamina" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="stat-bar">
+                    <div class="stat-label">
+                        <span>🧠 Sanity</span>
+                        <span id="sanity-text">100/100</span>
+                    </div>
+                    <div class="stat-progress">
+                        <div id="sanity-bar" class="stat-fill sanity" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="scenario-info" class="scenario-info hidden">
+                <h3>📖 Scenario Info</h3>
+                <div id="scenario-details">
+                    Select a scenario to begin
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentGame = null;
+        
+        function selectScenario(scenarioId) {
+            const scenarios = {
+                'northern_realms': {
+                    name: 'Northern Realms',
+                    description: 'A medieval fantasy world of magic, kingdoms, and ancient mysteries.',
+                    icon: '⚔️'
+                },
+                'whispering_town': {
+                    name: 'Whispering Town',
+                    description: 'A cosmic horror mystery in a town where reality bends and sanity matters.',
+                    icon: '🌙'
+                },
+                'neo_tokyo': {
+                    name: 'Neo-Tokyo 2087',
+                    description: 'A cyberpunk future of corporate wars, AI consciousness, and digital mysteries.',
+                    icon: '🌆'
+                }
+            };
+            
+            currentGame = {
+                scenario: scenarioId,
+                player_name: prompt('Enter your character name:') || 'Adventurer',
+                session_id: Math.random().toString(36).substring(2, 15)
+            };
+            
+            // Hide scenario selection, show game
+            document.getElementById('scenario-selection').classList.add('hidden');
+            document.getElementById('game-area').style.display = 'flex';
+            document.getElementById('stats-panel').classList.remove('hidden');
+            document.getElementById('scenario-info').classList.remove('hidden');
+            
+            // Update scenario info
+            const scenario = scenarios[scenarioId];
+            document.getElementById('scenario-details').innerHTML = 
+                `<h4>${scenario.icon} ${scenario.name}</h4><p>${scenario.description}</p>`;
+            
+            // Start the game
+            makeGameTurn('start_game');
+        }
+        
+        function makeChoice(choice) {
+            makeGameTurn(choice);
+        }
+        
+        function submitCustomAction() {
+            const input = document.getElementById('custom-input');
+            const action = input.value.trim();
+            
+            if (action) {
+                input.value = '';
+                makeGameTurn(action);
+            }
+        }
+        
+        async function makeGameTurn(playerChoice) {
+            const loading = document.getElementById('loading');
+            const choicesDiv = document.getElementById('choices');
+            
+            loading.style.display = 'block';
+            choicesDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch('/api/turn', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ...currentGame,
+                        player_choice: playerChoice
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                // Update narrative
+                document.getElementById('narrative').textContent = data.narrative;
+                
+                // Update choices
+                if (data.choices && data.choices.length > 0) {
+                    data.choices.forEach((choice, index) => {
+                        const button = document.createElement('button');
+                        button.className = 'choice-btn';
+                        button.textContent = `${index + 1}. ${choice}`;
+                        button.onclick = () => makeChoice(choice);
+                        choicesDiv.appendChild(button);
+                    });
+                }
+                
+                // Update stats if available
+                if (data.stats) {
+                    updateStats(data.stats);
+                }
+                
+            } catch (error) {
+                document.getElementById('narrative').textContent = 
+                    `❌ Error: ${error.message}. Please try again.`;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+        
+        function updateStats(stats) {
+            // Update health
+            if (stats.health !== undefined) {
+                const healthPercent = (stats.health / 100) * 100;
+                document.getElementById('health-bar').style.width = healthPercent + '%';
+                document.getElementById('health-text').textContent = `${stats.health}/100`;
+            }
+            
+            // Update mana
+            if (stats.mana !== undefined) {
+                const manaPercent = (stats.mana / 100) * 100;
+                document.getElementById('mana-bar').style.width = manaPercent + '%';
+                document.getElementById('mana-text').textContent = `${stats.mana}/100`;
+            }
+            
+            // Update stamina
+            if (stats.stamina !== undefined) {
+                const staminaPercent = (stats.stamina / 100) * 100;
+                document.getElementById('stamina-bar').style.width = staminaPercent + '%';
+                document.getElementById('stamina-text').textContent = `${stats.stamina}/100`;
+            }
+            
+            // Update sanity
+            if (stats.sanity !== undefined) {
+                const sanityPercent = (stats.sanity / 100) * 100;
+                document.getElementById('sanity-bar').style.width = sanityPercent + '%';
+                document.getElementById('sanity-text').textContent = `${stats.sanity}/100`;
+            }
+        }
+        
+        // Allow Enter key in custom input
+        document.getElementById('custom-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                submitCustomAction();
+            }
+        });
+    </script>
+</body>
+</html> 

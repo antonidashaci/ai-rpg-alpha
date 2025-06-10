@@ -1,0 +1,1345 @@
+{% extends "base.html" %}
+
+{% block title %}AI RPG Alpha - Playing{% endblock %}
+
+{% block additional_css %}
+<style>
+    /* Game Layout */
+    .game-layout {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        grid-template-rows: auto 1.8fr auto;
+        grid-template-areas: 
+            "sidebar header"
+            "sidebar main"
+            "sidebar commands";
+        height: calc(100vh - 64px);
+        gap: var(--space-md);
+        padding: var(--space-md);
+        max-width: 1700px;
+        margin: 0 auto;
+    }
+    
+    /* Character Sheet Sidebar */
+    .character-sidebar {
+        grid-area: sidebar;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: var(--space-lg);
+        overflow-y: auto;
+        max-height: calc(100vh - 128px);
+    }
+    
+    .character-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .character-sidebar::-webkit-scrollbar-track {
+        background: var(--bg-hover);
+        border-radius: 3px;
+    }
+    
+    .character-sidebar::-webkit-scrollbar-thumb {
+        background: var(--accent-orange);
+        border-radius: 3px;
+    }
+    
+    .character-header {
+        text-align: center;
+        margin-bottom: var(--space-lg);
+        padding-bottom: var(--space-md);
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .character-name {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--accent-orange);
+        margin-bottom: var(--space-xs);
+    }
+    
+    .character-details {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+    
+    .stat-section {
+        margin-bottom: var(--space-lg);
+    }
+    
+    .section-title {
+        font-weight: 700;
+        color: white;
+        margin-bottom: var(--space-md);
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
+    
+    .abilities-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-md);
+    }
+    
+    .ability-item {
+        background: var(--bg-hover);
+        padding: var(--space-sm);
+        border-radius: var(--radius-sm);
+        text-align: center;
+    }
+    
+    .ability-name {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-bottom: var(--space-xs);
+    }
+    
+    .ability-score {
+        font-weight: 700;
+        color: white;
+        font-size: 1.1rem;
+    }
+    
+    .ability-modifier {
+        font-size: 0.8rem;
+        color: var(--accent-blue);
+    }
+    
+    .character-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-md);
+    }
+    
+    .stat-item {
+        background: var(--bg-hover);
+        padding: var(--space-sm);
+        border-radius: var(--radius-sm);
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-bottom: var(--space-xs);
+    }
+    
+    .stat-value {
+        font-weight: 600;
+        color: white;
+    }
+    
+    .inventory-list {
+        margin-bottom: var(--space-md);
+    }
+    
+    .inventory-item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        padding: var(--space-xs) 0;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+    }
+    
+    .inventory-item:last-child {
+        border-bottom: none;
+    }
+    
+    .item-icon {
+        width: 16px;
+        color: var(--accent-orange);
+    }
+    
+    .item-name {
+        color: var(--text-primary);
+        flex-grow: 1;
+    }
+    
+    .item-quantity {
+        color: var(--text-muted);
+    }
+    
+    /* Game Header */
+    .game-header {
+        grid-area: header;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: var(--space-md);
+        max-height: 140px;
+    }
+    
+    .game-state-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: var(--space-md);
+    }
+    
+    .state-item {
+        text-align: center;
+    }
+    
+    .state-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-bottom: var(--space-xs);
+    }
+    
+    .state-value {
+        font-weight: 600;
+        color: white;
+    }
+    
+    .weather-description {
+        grid-column: 1 / -1;
+        background: var(--bg-hover);
+        padding: var(--space-md);
+        border-radius: var(--radius-sm);
+        margin-top: var(--space-md);
+        font-style: italic;
+        color: var(--text-secondary);
+    }
+    
+    /* Main Story Panel */
+    .story-panel {
+        grid-area: main;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: var(--space-lg);
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-lg);
+        min-height: 450px;
+    }
+    
+    .story-panel::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .story-panel::-webkit-scrollbar-track {
+        background: var(--bg-hover);
+        border-radius: 3px;
+    }
+    
+    .story-panel::-webkit-scrollbar-thumb {
+        background: var(--accent-orange);
+        border-radius: 3px;
+    }
+    
+    .story-entry {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .narrative-text {
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: var(--space-lg);
+        padding: var(--space-md);
+        text-align: justify;
+    }
+    
+    .dice-roll {
+        background: var(--bg-hover);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--accent-blue);
+        border-radius: var(--radius-lg);
+        padding: var(--space-md);
+        margin: var(--space-md) 0;
+    }
+    
+    .roll-header {
+        color: var(--accent-blue);
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: var(--space-xs);
+    }
+    
+    .roll-details {
+        color: var(--text-primary);
+        margin-bottom: var(--space-xs);
+    }
+    
+    .roll-result {
+        font-weight: 700;
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: var(--radius-sm);
+        display: inline-block;
+    }
+    
+    .roll-success {
+        background: rgba(46, 213, 115, 0.2);
+        color: #2ed573;
+    }
+    
+    .roll-failure {
+        background: rgba(255, 71, 87, 0.2);
+        color: #ff4757;
+    }
+    
+    .quest-update {
+        background: var(--bg-hover);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--accent-orange);
+        border-radius: var(--radius-lg);
+        padding: var(--space-md);
+        margin: var(--space-md) 0;
+    }
+    
+    .quest-header {
+        color: var(--accent-orange);
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: var(--space-xs);
+    }
+    
+    .loot-discovery {
+        background: var(--bg-hover);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid #f39c12;
+        border-radius: var(--radius-lg);
+        padding: var(--space-md);
+        margin: var(--space-md) 0;
+    }
+    
+    .loot-header {
+        color: #f39c12;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: var(--space-xs);
+    }
+    
+    .loot-list {
+        list-style: none;
+        padding: 0;
+        margin: var(--space-sm) 0;
+    }
+    
+    .loot-item {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        padding: var(--space-xs) 0;
+        color: var(--text-primary);
+    }
+    
+    .loot-icon {
+        width: 16px;
+        color: #f39c12;
+    }
+    
+    /* Commands Section */
+    .commands-section {
+        grid-area: commands;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: var(--space-md);
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .commands-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-md);
+    }
+    
+    .commands-title {
+        font-weight: 700;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
+    
+    .command-prompt {
+        color: var(--text-muted);
+        font-style: italic;
+        font-size: 0.9rem;
+    }
+    
+    .choices-container {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-lg);
+    }
+    
+    .choice-button {
+        background: var(--bg-hover);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        padding: var(--space-md);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: left;
+        font-size: 0.95rem;
+        line-height: 1.4;
+        position: relative;
+    }
+    
+    .choice-button:hover {
+        border-color: var(--accent-orange);
+        background: var(--bg-card);
+        transform: translateX(4px);
+    }
+    
+    .choice-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .choice-number {
+        color: var(--accent-orange);
+        font-weight: 700;
+        margin-right: var(--space-sm);
+    }
+    
+    .custom-input-section {
+        border-top: 1px solid var(--border-color);
+        padding-top: var(--space-md);
+    }
+    
+    .input-row {
+        display: flex;
+        gap: var(--space-sm);
+        align-items: flex-end;
+    }
+    
+    .input-field {
+        flex-grow: 1;
+        background: var(--bg-hover);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: var(--space-sm);
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        resize: none;
+        font-family: var(--font-primary);
+        transition: all 0.2s ease;
+    }
+    
+    .input-field:focus {
+        outline: none;
+        border-color: var(--accent-orange);
+        box-shadow: 0 0 0 2px rgba(255, 140, 66, 0.1);
+    }
+    
+    .submit-btn {
+        background: var(--accent-orange);
+        border: none;
+        color: white;
+        padding: var(--space-sm) var(--space-md);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
+    
+    .submit-btn:hover:not(:disabled) {
+        background: var(--accent-orange-hover);
+    }
+    
+    .submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    /* Loading States */
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        color: var(--text-muted);
+        font-style: italic;
+        padding: var(--space-md);
+    }
+    
+    .typing-dots {
+        display: flex;
+        gap: 2px;
+    }
+    
+    .typing-dot {
+        width: 4px;
+        height: 4px;
+        background: var(--accent-orange);
+        border-radius: 50%;
+        animation: typingBounce 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes typingBounce {
+        0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+        40% { transform: scale(1); opacity: 1; }
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 1024px) {
+        .game-layout {
+            grid-template-columns: 1fr;
+            grid-template-areas: 
+                "header"
+                "main"
+                "commands"
+                "sidebar";
+            grid-template-rows: auto 3fr auto auto;
+        }
+        
+        .character-sidebar {
+            max-height: 300px;
+        }
+        
+        .story-panel {
+            min-height: 400px;
+            padding: var(--space-lg);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .game-layout {
+            padding: var(--space-sm);
+            gap: var(--space-sm);
+        }
+        
+        .abilities-grid,
+        .character-stats,
+        .game-state-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .input-row {
+            flex-direction: column;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="game-layout">
+    <!-- Character Sheet Sidebar -->
+    <aside class="character-sidebar">
+        <div class="character-header">
+            <div class="character-name" id="characterName">Ra'el</div>
+            <div class="character-details">
+                <div>Level 1 Human Monk</div>
+                <div>Hermit Background</div>
+            </div>
+        </div>
+        
+        <!-- Abilities -->
+        <div class="stat-section">
+            <div class="section-title">
+                <i class="fas fa-dice-d20"></i>
+                Abilities (Base d20 Rolls)
+            </div>
+            <div class="abilities-grid">
+                <div class="ability-item">
+                    <div class="ability-name">Persuasion</div>
+                    <div class="ability-score">12</div>
+                    <div class="ability-modifier">+1</div>
+                </div>
+                <div class="ability-item">
+                    <div class="ability-name">Strength</div>
+                    <div class="ability-score">8</div>
+                    <div class="ability-modifier">-1</div>
+                </div>
+                <div class="ability-item">
+                    <div class="ability-name">Intelligence</div>
+                    <div class="ability-score">10</div>
+                    <div class="ability-modifier">+0</div>
+                </div>
+                <div class="ability-item">
+                    <div class="ability-name">Dexterity</div>
+                    <div class="ability-score">18</div>
+                    <div class="ability-modifier">+4</div>
+                </div>
+                <div class="ability-item">
+                    <div class="ability-name">Luck</div>
+                    <div class="ability-score">15</div>
+                    <div class="ability-modifier">+2</div>
+                </div>
+                <div class="ability-item">
+                    <div class="ability-name">Wisdom</div>
+                    <div class="ability-score">15</div>
+                    <div class="ability-modifier">+2</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Character Stats -->
+        <div class="stat-section">
+            <div class="section-title">
+                <i class="fas fa-user"></i>
+                Character Stats
+            </div>
+            <div class="character-stats">
+                <div class="stat-item">
+                    <div class="stat-label">Health</div>
+                    <div class="stat-value" id="healthValue">20/20</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">XP</div>
+                    <div class="stat-value" id="xpValue">10</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">AC</div>
+                    <div class="stat-value" id="acValue">15</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Level</div>
+                    <div class="stat-value" id="levelValue">1</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Speed</div>
+                    <div class="stat-value" id="speedValue">30 ft</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Initiative</div>
+                    <div class="stat-value" id="initiativeValue">+3</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Inventory -->
+        <div class="stat-section">
+            <div class="section-title">
+                <i class="fas fa-backpack"></i>
+                Inventory
+            </div>
+            <div class="inventory-list" id="inventoryList">
+                <div class="inventory-item">
+                    <i class="fas fa-scroll item-icon"></i>
+                    <span class="item-name">Ten darts</span>
+                </div>
+                <div class="inventory-item">
+                    <i class="fas fa-leaf item-icon"></i>
+                    <span class="item-name">Herbalism kit</span>
+                </div>
+                <div class="inventory-item">
+                    <i class="fas fa-flask item-icon"></i>
+                    <span class="item-name">Potion of Minor Healing</span>
+                </div>
+                <div class="inventory-item">
+                    <i class="fas fa-scroll item-icon"></i>
+                    <span class="item-name">Scroll of Sparks</span>
+                </div>
+                <div class="inventory-item">
+                    <i class="fas fa-coins item-icon"></i>
+                    <span class="item-name">Silver pieces</span>
+                    <span class="item-quantity">12</span>
+                </div>
+                <div class="inventory-item">
+                    <i class="fas fa-key item-icon"></i>
+                    <span class="item-name">Rusty Iron Key</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Equipment -->
+        <div class="stat-section">
+            <div class="section-title">
+                <i class="fas fa-tshirt"></i>
+                Equipment
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Wearing</div>
+                <div class="stat-value">Common monk robes</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Wielding</div>
+                <div class="stat-value">1 Dart (ranged), Fists (Martial Arts)</div>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- Game Header -->
+    <header class="game-header">
+        <div class="section-title">
+            <i class="fas fa-globe"></i>
+            Game State
+        </div>
+        <div class="game-state-grid">
+            <div class="state-item">
+                <div class="state-label">Turn Number</div>
+                <div class="state-value" id="turnNumber">2</div>
+            </div>
+            <div class="state-item">
+                <div class="state-label">Time Period</div>
+                <div class="state-value" id="timePeriod">Morning</div>
+            </div>
+            <div class="state-item">
+                <div class="state-label">Current Day</div>
+                <div class="state-value" id="currentDay">1</div>
+            </div>
+            <div class="state-item">
+                <div class="state-label">Location</div>
+                <div class="state-value" id="currentLocation">Fork on the Green Road, near Valenwood</div>
+            </div>
+            <div class="weather-description" id="weatherDescription">
+                Cool mist, light fog drifting through dense trees
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Story Panel -->
+    <main class="story-panel" id="storyPanel">
+        <!-- Story entries will be populated here -->
+        <div class="story-entry">
+            <div class="narrative-text">
+                Welcome to the world of Nirn, mortal. The continent is Tamriel — a land of ancient ruins, prowling monsters, and hidden magics. War stirs across provinces, and shadows lengthen over old empires. You are Ra'el — a wandering monk, hardened by a life of solitude and sworn to seek balance.
+            </div>
+            <div class="narrative-text">
+                <em>Your journey begins on the border between Cyrodiil and Valenwood, where dense forests whisper secrets of things long forgotten.</em>
+            </div>
+        </div>
+        
+        <div class="story-entry">
+            <div class="narrative-text">
+                You stand at a moss-covered fork in the forest road. The trees around you are thick and tall, their trunks pale and twisted like bone. Small creatures skitter through underbrush, and distant birds cry out. To the north, a broken signpost points to the ruined town of <strong>Culdenwatch</strong>. Eastward, the road disappears into tangled woods known to locals as <em>The Whispering Vale</em>. West lies a crumbling imperial waystation.
+            </div>
+            <div class="narrative-text">
+                You sense movement in the fog...
+            </div>
+        </div>
+        
+        <div class="story-entry">
+            <div class="dice-roll">
+                <div class="roll-header">🎲 Search Roll:</div>
+                <div class="roll-details">d20 + (Wisdom 15 → +5) = 17 + 5 = 22</div>
+                <div class="roll-result roll-success">Result: Exceptional success.</div>
+            </div>
+        </div>
+        
+        <div class="story-entry">
+            <div class="loot-discovery">
+                <div class="loot-header">🔍 Search Result:</div>
+                <div class="narrative-text">
+                    You move silently through the wet underbrush, each step practiced and deliberate. Just behind a thicket of moon-fern, you uncover a half-buried leather satchel, moss-covered and waterlogged but intact. Inside, you find:
+                </div>
+                <ul class="loot-list">
+                    <li class="loot-item">
+                        <i class="fas fa-flask loot-icon"></i>
+                        Potion of Minor Healing (+1d4+2 HP when used)
+                    </li>
+                    <li class="loot-item">
+                        <i class="fas fa-scroll loot-icon"></i>
+                        Scroll of Sparks (Can cast the spell once. Costs 2 HP to use.)
+                    </li>
+                    <li class="loot-item">
+                        <i class="fas fa-coins loot-icon"></i>
+                        12 Silver Pieces
+                    </li>
+                    <li class="loot-item">
+                        <i class="fas fa-key loot-icon"></i>
+                        Rusty Iron Key (no label)
+                    </li>
+                </ul>
+                <div class="narrative-text">
+                    Further tracks in the mud — small, humanoid, barefoot — lead eastward into the Whispering Vale. They are fresh.
+                </div>
+            </div>
+        </div>
+        
+        <div class="story-entry">
+            <div class="quest-update">
+                <div class="quest-header">📜 Quest Update:</div>
+                <div class="narrative-text">
+                    <em>Optional: Follow the barefoot tracks into the Whispering Vale.</em>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Commands Section -->
+    <section class="commands-section">
+        <div class="commands-header">
+            <div class="commands-title">
+                <i class="fas fa-terminal"></i>
+                Possible Commands
+            </div>
+            <div class="command-prompt">What will you do, Ra'el?</div>
+        </div>
+        
+        <div class="choices-container" id="choicesContainer">
+            <button class="choice-button" onclick="selectChoice(1, 'Follow the Tracks into the Whispering Vale')">
+                <span class="choice-number">1.</span>
+                Follow the Tracks into the Whispering Vale
+            </button>
+            <button class="choice-button" onclick="selectChoice(2, 'Return to the Road and Head to Culdenwatch (North)')">
+                <span class="choice-number">2.</span>
+                Return to the Road and Head to Culdenwatch (North)
+            </button>
+            <button class="choice-button" onclick="selectChoice(3, 'Inspect the Leather Satchel Further')">
+                <span class="choice-number">3.</span>
+                Inspect the Leather Satchel Further
+            </button>
+            <button class="choice-button" onclick="selectChoice(4, 'Head to the Imperial Waystation (West)')">
+                <span class="choice-number">4.</span>
+                Head to the Imperial Waystation (West)
+            </button>
+            <button class="choice-button" onclick="selectChoice(5, 'Use Potion or Read Scroll')">
+                <span class="choice-number">5.</span>
+                Use Potion or Read Scroll
+            </button>
+            <button class="choice-button" onclick="selectChoice(6, 'Hide and Observe the Forest Quietly')">
+                <span class="choice-number">6.</span>
+                Hide and Observe the Forest Quietly
+            </button>
+        </div>
+        
+        <div class="custom-input-section">
+            <div class="input-row">
+                <textarea 
+                    id="customInput" 
+                    class="input-field" 
+                    placeholder="Other (Type your own command)"
+                    rows="2"
+                    maxlength="500"
+                ></textarea>
+                <button id="submitBtn" class="submit-btn" onclick="submitCustomAction()">
+                    <i class="fas fa-paper-plane"></i>
+                    Send
+                </button>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let gameState = {
+        character: {
+            name: "Ra'el",
+            class: "Monk",
+            level: 1,
+            race: "Human",
+            background: "Hermit",
+            health: { current: 20, max: 20 },
+            xp: 10,
+            ac: 15,
+            speed: "30 ft",
+            initiative: "+3",
+            abilities: {
+                persuasion: { score: 12, modifier: 1 },
+                strength: { score: 8, modifier: -1 },
+                intelligence: { score: 10, modifier: 0 },
+                dexterity: { score: 18, modifier: 4 },
+                luck: { score: 15, modifier: 2 },
+                wisdom: { score: 15, modifier: 2 }
+            },
+            inventory: [
+                { name: "Ten darts", icon: "fas fa-scroll", quantity: null },
+                { name: "Herbalism kit", icon: "fas fa-leaf", quantity: null },
+                { name: "Potion of Minor Healing", icon: "fas fa-flask", quantity: null },
+                { name: "Scroll of Sparks", icon: "fas fa-scroll", quantity: null },
+                { name: "Silver pieces", icon: "fas fa-coins", quantity: 12 },
+                { name: "Rusty Iron Key", icon: "fas fa-key", quantity: null }
+            ],
+            equipment: {
+                wearing: "Common monk robes",
+                wielding: "1 Dart (ranged), Fists (Martial Arts)"
+            }
+        },
+        game: {
+            turnNumber: 2,
+            timePeriod: "Morning",
+            currentDay: 1,
+            location: "Fork on the Green Road, near Valenwood",
+            weather: "Cool mist, light fog drifting through dense trees",
+            scenario: "northern-realms"
+        },
+        story: [],
+        isProcessing: false
+    };
+    
+    // Initialize game
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const scenario = urlParams.get('scenario') || 'northern-realms';
+        
+        gameState.game.scenario = scenario;
+        
+        // Load custom character data if available
+        loadCustomCharacter();
+        
+        setupInputHandlers();
+        updateUI();
+    });
+    
+    function setupInputHandlers() {
+        const input = document.getElementById('customInput');
+        
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitCustomAction();
+            }
+        });
+    }
+    
+    async function selectChoice(choiceNumber, choiceText) {
+        if (gameState.isProcessing) return;
+        
+        gameState.isProcessing = true;
+        disableChoices();
+        
+        // Add user choice to story
+        addUserChoice(choiceNumber, choiceText);
+        
+        // Show loading
+        showTypingIndicator();
+        
+        try {
+            const response = await fetch('/api/turn', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    choice: choiceNumber,
+                    choice_text: choiceText,
+                    game_state: gameState
+                })
+            });
+            
+            const data = await response.json();
+            
+            removeTypingIndicator();
+            
+            if (data.success) {
+                processGameResponse(data);
+            } else {
+                showError(data.error || 'Something went wrong. Please try again.');
+                enableChoices();
+            }
+        } catch (error) {
+            removeTypingIndicator();
+            showError('Connection error. Please check your connection and try again.');
+            console.error('Error:', error);
+            enableChoices();
+        } finally {
+            gameState.isProcessing = false;
+        }
+    }
+    
+    async function submitCustomAction() {
+        if (gameState.isProcessing) return;
+        
+        const input = document.getElementById('customInput');
+        const actionText = input.value.trim();
+        
+        if (!actionText) return;
+        
+        gameState.isProcessing = true;
+        
+        input.disabled = true;
+        document.getElementById('submitBtn').disabled = true;
+        disableChoices();
+        
+        addUserChoice('Custom', actionText);
+        
+        input.value = '';
+        showTypingIndicator();
+        
+        try {
+            const response = await fetch('/api/turn', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: actionText,
+                    game_state: gameState
+                })
+            });
+            
+            const data = await response.json();
+            
+            removeTypingIndicator();
+            
+            if (data.success) {
+                processGameResponse(data);
+            } else {
+                showError(data.error || 'Something went wrong. Please try again.');
+            }
+        } catch (error) {
+            removeTypingIndicator();
+            showError('Connection error. Please check your connection and try again.');
+            console.error('Error:', error);
+        } finally {
+            input.disabled = false;
+            document.getElementById('submitBtn').disabled = false;
+            enableChoices();
+            gameState.isProcessing = false;
+        }
+    }
+    
+    function processGameResponse(data) {
+        // Update game state
+        if (data.game_state) {
+            Object.assign(gameState, data.game_state);
+        }
+        
+        // Add narrative text
+        if (data.story) {
+            addNarrativeText(data.story);
+        }
+        
+        // Add dice roll if present
+        if (data.dice_roll) {
+            addDiceRoll(data.dice_roll);
+        }
+        
+        // Add loot discovery if present
+        if (data.loot) {
+            addLootDiscovery(data.loot);
+        }
+        
+        // Add quest update if present
+        if (data.quest_update) {
+            addQuestUpdate(data.quest_update);
+        }
+        
+        // Update choices
+        if (data.choices && data.choices.length > 0) {
+            updateChoices(data.choices);
+        } else {
+            showDefaultChoices();
+        }
+        
+        // Update UI elements
+        updateUI();
+        updateTurnNumber();
+    }
+    
+    function addUserChoice(choiceNumber, choiceText) {
+        const storyPanel = document.getElementById('storyPanel');
+        const choiceEntry = document.createElement('div');
+        choiceEntry.className = 'story-entry';
+        
+        choiceEntry.innerHTML = `
+            <div class="narrative-text" style="background: var(--bg-hover); padding: var(--space-md); border-radius: var(--radius-md); border-left: 4px solid var(--accent-blue);">
+                <strong>You choose:</strong> ${choiceNumber}. ${choiceText}
+            </div>
+        `;
+        
+        storyPanel.appendChild(choiceEntry);
+        scrollToBottom();
+    }
+    
+    function addNarrativeText(text) {
+        const storyPanel = document.getElementById('storyPanel');
+        const narrativeEntry = document.createElement('div');
+        narrativeEntry.className = 'story-entry';
+        
+        narrativeEntry.innerHTML = `
+            <div class="narrative-text">${text}</div>
+        `;
+        
+        storyPanel.appendChild(narrativeEntry);
+        scrollToBottom();
+        
+        gameState.story.push({
+            type: 'narrative',
+            content: text,
+            timestamp: Date.now()
+        });
+    }
+    
+    function addDiceRoll(rollData) {
+        const storyPanel = document.getElementById('storyPanel');
+        const rollEntry = document.createElement('div');
+        rollEntry.className = 'story-entry';
+        
+        const resultClass = rollData.success ? 'roll-success' : 'roll-failure';
+        
+        rollEntry.innerHTML = `
+            <div class="dice-roll">
+                <div class="roll-header">🎲 ${rollData.type} Roll:</div>
+                <div class="roll-details">${rollData.formula} = ${rollData.total}</div>
+                <div class="roll-result ${resultClass}">Result: ${rollData.result}</div>
+            </div>
+        `;
+        
+        storyPanel.appendChild(rollEntry);
+        scrollToBottom();
+    }
+    
+    function addLootDiscovery(lootData) {
+        const storyPanel = document.getElementById('storyPanel');
+        const lootEntry = document.createElement('div');
+        lootEntry.className = 'story-entry';
+        
+        let lootHtml = `
+            <div class="loot-discovery">
+                <div class="loot-header">🔍 Loot Discovery:</div>
+                <div class="narrative-text">${lootData.description}</div>
+        `;
+        
+        if (lootData.items && lootData.items.length > 0) {
+            lootHtml += '<ul class="loot-list">';
+            lootData.items.forEach(item => {
+                lootHtml += `
+                    <li class="loot-item">
+                        <i class="${item.icon} loot-icon"></i>
+                        ${item.name}${item.description ? ` (${item.description})` : ''}
+                    </li>
+                `;
+            });
+            lootHtml += '</ul>';
+        }
+        
+        lootHtml += '</div>';
+        lootEntry.innerHTML = lootHtml;
+        
+        storyPanel.appendChild(lootEntry);
+        scrollToBottom();
+    }
+    
+    function addQuestUpdate(questData) {
+        const storyPanel = document.getElementById('storyPanel');
+        const questEntry = document.createElement('div');
+        questEntry.className = 'story-entry';
+        
+        questEntry.innerHTML = `
+            <div class="quest-update">
+                <div class="quest-header">📜 Quest Update:</div>
+                <div class="narrative-text"><em>${questData.text}</em></div>
+            </div>
+        `;
+        
+        storyPanel.appendChild(questEntry);
+        scrollToBottom();
+    }
+    
+    function updateChoices(choices) {
+        const container = document.getElementById('choicesContainer');
+        container.innerHTML = '';
+        
+        choices.forEach((choice, index) => {
+            const button = document.createElement('button');
+            button.className = 'choice-button';
+            button.onclick = () => selectChoice(index + 1, choice);
+            
+            button.innerHTML = `
+                <span class="choice-number">${index + 1}.</span>
+                ${choice}
+            `;
+            
+            container.appendChild(button);
+        });
+    }
+    
+    function showDefaultChoices() {
+        const defaultChoices = [
+            'Continue exploring the area',
+            'Look for more clues',
+            'Rest and consider your options',
+            'Try a different approach',
+            'Ask for help or guidance'
+        ];
+        
+        updateChoices(defaultChoices);
+    }
+    
+    function updateUI() {
+        // Update character stats
+        document.getElementById('healthValue').textContent = 
+            `${gameState.character.health.current}/${gameState.character.health.max}`;
+        document.getElementById('xpValue').textContent = gameState.character.xp;
+        document.getElementById('levelValue').textContent = gameState.character.level;
+        
+        // Update game state
+        document.getElementById('turnNumber').textContent = gameState.game.turnNumber;
+        document.getElementById('timePeriod').textContent = gameState.game.timePeriod;
+        document.getElementById('currentDay').textContent = gameState.game.currentDay;
+        document.getElementById('currentLocation').textContent = gameState.game.location;
+        document.getElementById('weatherDescription').textContent = gameState.game.weather;
+    }
+    
+    function updateTurnNumber() {
+        gameState.game.turnNumber++;
+        updateUI();
+    }
+    
+    function disableChoices() {
+        document.querySelectorAll('.choice-button').forEach(btn => {
+            btn.disabled = true;
+        });
+    }
+    
+    function enableChoices() {
+        document.querySelectorAll('.choice-button').forEach(btn => {
+            btn.disabled = false;
+        });
+    }
+    
+    function showTypingIndicator() {
+        const storyPanel = document.getElementById('storyPanel');
+        const typingEntry = document.createElement('div');
+        typingEntry.className = 'story-entry typing-indicator';
+        typingEntry.id = 'typingIndicator';
+        
+        typingEntry.innerHTML = `
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+            <span>AI is crafting your story...</span>
+        `;
+        
+        storyPanel.appendChild(typingEntry);
+        scrollToBottom();
+    }
+    
+    function removeTypingIndicator() {
+        const indicator = document.getElementById('typingIndicator');
+        if (indicator) {
+            indicator.remove();
+        }
+    }
+    
+    function showError(message) {
+        const storyPanel = document.getElementById('storyPanel');
+        const errorEntry = document.createElement('div');
+        errorEntry.className = 'story-entry';
+        
+        errorEntry.innerHTML = `
+            <div class="narrative-text" style="border-left-color: #ff4757; background: rgba(255, 71, 87, 0.1);">
+                <strong>Error:</strong> ${message}
+            </div>
+        `;
+        
+        storyPanel.appendChild(errorEntry);
+        scrollToBottom();
+        
+        setTimeout(() => errorEntry.remove(), 5000);
+    }
+    
+    function scrollToBottom() {
+        const storyPanel = document.getElementById('storyPanel');
+        storyPanel.scrollTop = storyPanel.scrollHeight;
+    }
+    
+    function loadCustomCharacter() {
+        const customCharacterData = localStorage.getItem('newCharacterData');
+        if (customCharacterData) {
+            try {
+                const characterData = JSON.parse(customCharacterData);
+                
+                // Update character information
+                gameState.character.name = characterData.name;
+                gameState.character.race = characterData.race;
+                gameState.character.class = characterData.class;
+                gameState.character.background = characterData.background;
+                
+                // Update abilities
+                for (const ability in characterData.abilities) {
+                    if (gameState.character.abilities[ability]) {
+                        gameState.character.abilities[ability].score = characterData.abilities[ability];
+                        gameState.character.abilities[ability].modifier = Math.floor((characterData.abilities[ability] - 10) / 2);
+                    }
+                }
+                
+                // Calculate derived stats based on class
+                const characterClass = characterData.class;
+                let baseHealth = 8; // Default monk
+                if (characterClass === 'fighter') baseHealth = 10;
+                else if (characterClass === 'wizard') baseHealth = 6;
+                
+                const healthBonus = gameState.character.abilities.strength.modifier;
+                const health = Math.max(1, baseHealth + healthBonus);
+                gameState.character.health.current = health;
+                gameState.character.health.max = health;
+                
+                // Update AC based on class and dexterity
+                const baseAC = 10 + gameState.character.abilities.dexterity.modifier;
+                gameState.character.ac = baseAC;
+                
+                // Update UI elements
+                document.getElementById('characterName').textContent = characterData.name;
+                document.querySelector('.character-details').innerHTML = `
+                    <div>Level ${gameState.character.level} ${characterData.race} ${characterData.class}</div>
+                    <div>${characterData.background} Background</div>
+                `;
+                
+                // Update ability scores in UI
+                updateAbilityScoresUI();
+                
+                // Clear the character data from localStorage
+                localStorage.removeItem('newCharacterData');
+                
+                console.log('Custom character loaded:', characterData.name);
+            } catch (error) {
+                console.error('Error loading custom character:', error);
+            }
+        }
+    }
+    
+    function updateAbilityScoresUI() {
+        // Update all ability score displays
+        const abilities = gameState.character.abilities;
+        
+        // Find and update ability elements (they might have different structure)
+        for (const ability in abilities) {
+            const abilityData = abilities[ability];
+            
+            // Try to find ability elements by common patterns
+            const scoreElement = document.querySelector(`[data-ability="${ability}"] .ability-score`) ||
+                                 document.querySelector(`#${ability}-score`) ||
+                                 document.querySelector(`[class*="${ability}"] .ability-score`);
+                                 
+            const modifierElement = document.querySelector(`[data-ability="${ability}"] .ability-modifier`) ||
+                                   document.querySelector(`#${ability}-modifier`) ||
+                                   document.querySelector(`[class*="${ability}"] .ability-modifier`);
+            
+            if (scoreElement) scoreElement.textContent = abilityData.score;
+            if (modifierElement) {
+                const modifier = abilityData.modifier;
+                modifierElement.textContent = modifier >= 0 ? `+${modifier}` : modifier;
+            }
+        }
+    }
+    
+    // Auto-save game state
+    setInterval(() => {
+        localStorage.setItem('aiRpgGameState', JSON.stringify(gameState));
+    }, 30000);
+</script>
+{% endblock %} 
