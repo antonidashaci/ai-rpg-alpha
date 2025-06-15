@@ -10,62 +10,84 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="scenario-select-container">
-        <h1 class="scenario-select-title">Choose Your World</h1>
-        <div class="scenario-cards-grid">
-            <div class="scenario-card modern" data-scenario="northern_realms">
-                <div class="scenario-image-bleed">
-                    <img src="assets/ChatGPT Image 15 Haz 2025 19_19_27.png" alt="Northern Realms" />
-                    <div class="scenario-gradient-overlay fantasy"></div>
-                    <div class="scenario-tagline">A fantasy mountain valley at sunrise, medieval village, pine forest, magical runes.</div>
+    <div id="scenarioMenu" class="cinematic-menu">
+        <div class="background-blur" id="scenarioBg"></div>
+        <div class="cinematic-overlay"></div>
+        <div class="menu-content">
+            <div class="scenario-nav">
+                <button id="prevScenario" class="nav-arrow">&#8592;</button>
+                <div class="scenario-info">
+                    <div class="scenario-badge" id="scenarioBadge"></div>
+                    <h1 class="scenario-title" id="scenarioTitle"></h1>
+                    <div class="scenario-tagline" id="scenarioTagline"></div>
+                    <button class="play-btn-cinematic" id="playBtn">Oyna</button>
                 </div>
-                <div class="scenario-card-content">
-                    <div class="scenario-icon fantasy">🛡️</div>
-                    <h2 class="scenario-card-title">The Northern Realms</h2>
-                    <div class="scenario-genre fantasy">FANTASY</div>
-                    <p class="scenario-card-desc">Ancient dragons stir in forgotten mountain peaks. Magic flows through mystical ley lines, and the fate of kingdoms hangs by a thread.</p>
-                    <button class="play-btn fantasy" data-scenario="northern_realms">Oyna</button>
-                </div>
-            </div>
-            <div class="scenario-card modern" data-scenario="whispering_town">
-                <div class="scenario-image-bleed">
-                    <img src="assets/ChatGPT Image 15 Haz 2025 19_21_22.png" alt="Whispering Town" />
-                    <div class="scenario-gradient-overlay horror"></div>
-                    <div class="scenario-tagline">Foggy, eerie New England town at night, gas lamps, Victorian houses, cosmic horror.</div>
-                </div>
-                <div class="scenario-card-content">
-                    <div class="scenario-icon horror">🕯️</div>
-                    <h2 class="scenario-card-title">The Whispering Town</h2>
-                    <div class="scenario-genre horror">COSMIC HORROR</div>
-                    <p class="scenario-card-desc">Reality grows thin in this forgotten New England town. Ancient whispers carry forbidden knowledge, and your mind is never safe.</p>
-                    <button class="play-btn horror" data-scenario="whispering_town">Oyna</button>
-                </div>
-            </div>
-            <div class="scenario-card modern" data-scenario="neo_tokyo">
-                <div class="scenario-image-bleed">
-                    <img src="assets/ChatGPT Image 15 Haz 2025 19_23_42.png" alt="Neo-Tokyo 2087" />
-                    <div class="scenario-gradient-overlay cyber"></div>
-                    <div class="scenario-tagline">Futuristic cyberpunk city, neon lights, rain, crowds, holographic billboards.</div>
-                </div>
-                <div class="scenario-card-content">
-                    <div class="scenario-icon cyber">💾</div>
-                    <h2 class="scenario-card-title">Neo-Tokyo 2087</h2>
-                    <div class="scenario-genre cyber">CYBERPUNK DYSTOPIA</div>
-                    <p class="scenario-card-desc">Neon lights pierce through acid rain as corporate overlords control humanity's digital souls. In this city, information is power.</p>
-                    <button class="play-btn cyber" data-scenario="neo_tokyo">Oyna</button>
-                </div>
+                <button id="nextScenario" class="nav-arrow">&#8594;</button>
             </div>
         </div>
     </div>
-
     <script>
-    document.querySelectorAll('.play-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const scenario = this.getAttribute('data-scenario');
-            localStorage.setItem('selectedScenario', scenario);
+    // Senaryo verileri
+    const scenarios = [
+        {
+            key: 'northern_realms',
+            title: 'The Northern Realms',
+            tagline: 'A fantasy mountain valley at sunrise, medieval village, pine forest, magical runes.',
+            badge: 'FANTASY',
+            bg: 'assets/ChatGPT Image 15 Haz 2025 19_19_27.png',
+            btnColor: 'fantasy',
+        },
+        {
+            key: 'whispering_town',
+            title: 'The Whispering Town',
+            tagline: 'Foggy, eerie New England town at night, gas lamps, Victorian houses, cosmic horror.',
+            badge: 'COSMIC HORROR',
+            bg: 'assets/ChatGPT Image 15 Haz 2025 19_21_22.png',
+            btnColor: 'horror',
+        },
+        {
+            key: 'neo_tokyo',
+            title: 'Neo-Tokyo 2087',
+            tagline: 'Futuristic cyberpunk city, neon lights, rain, crowds, holographic billboards.',
+            badge: 'CYBERPUNK DYSTOPIA',
+            bg: 'assets/ChatGPT Image 15 Haz 2025 19_23_42.png',
+            btnColor: 'cyber',
+        }
+    ];
+    let current = 0;
+    function renderScenario(idx) {
+        const s = scenarios[idx];
+        document.getElementById('scenarioBg').style.backgroundImage = `url('${s.bg}')`;
+        document.getElementById('scenarioTitle').textContent = s.title;
+        document.getElementById('scenarioTagline').textContent = s.tagline;
+        document.getElementById('scenarioBadge').textContent = s.badge;
+        const btn = document.getElementById('playBtn');
+        btn.className = `play-btn-cinematic ${s.btnColor}`;
+        btn.onclick = () => {
+            localStorage.setItem('selectedScenario', s.key);
             window.location.href = 'index.html';
-        });
-    });
+        };
+    }
+    document.getElementById('prevScenario').onclick = () => {
+        current = (current - 1 + scenarios.length) % scenarios.length;
+        fadeScenario();
+    };
+    document.getElementById('nextScenario').onclick = () => {
+        current = (current + 1) % scenarios.length;
+        fadeScenario();
+    };
+    function fadeScenario() {
+        const menu = document.querySelector('.menu-content');
+        menu.classList.add('fade-out');
+        setTimeout(() => {
+            renderScenario(current);
+            menu.classList.remove('fade-out');
+            menu.classList.add('fade-in');
+            setTimeout(() => menu.classList.remove('fade-in'), 400);
+        }, 400);
+    }
+    // İlk render
+    renderScenario(current);
     </script>
 </body>
 </html> 

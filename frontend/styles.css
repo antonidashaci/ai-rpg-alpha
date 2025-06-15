@@ -2405,3 +2405,196 @@ p {
     }
 }
 
+/* Cinematic AAA Ana Menü Styles */
+.cinematic-menu {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #18151a;
+}
+.background-blur {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw; height: 100vh;
+    background-size: cover;
+    background-position: center;
+    filter: blur(8px) brightness(0.7) saturate(1.2);
+    z-index: 1;
+    transition: background-image 0.7s cubic-bezier(.4,2,.3,1);
+}
+.cinematic-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 60% 40%, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.7) 100%), linear-gradient(120deg, #0ff2 0%, #ff0a 100%);
+    z-index: 2;
+    pointer-events: none;
+}
+.menu-content {
+    position: relative;
+    z-index: 10;
+    width: 100vw;
+    max-width: 700px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    transition: opacity 0.4s, transform 0.4s;
+}
+.fade-in {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+}
+.fade-out {
+    opacity: 0 !important;
+    transform: scale(0.97) !important;
+}
+.scenario-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 2.5rem;
+}
+.nav-arrow {
+    font-size: 2.5rem;
+    color: #fff;
+    background: rgba(0,0,0,0.18);
+    border: none;
+    border-radius: 50%;
+    width: 64px; height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.18);
+    transition: background 0.2s, transform 0.1s;
+    margin: 0 0.5rem;
+}
+.nav-arrow:hover {
+    background: #ff9800;
+    color: #fff;
+    transform: scale(1.08);
+}
+.scenario-info {
+    background: rgba(24,21,26,0.92);
+    border-radius: 2.2rem;
+    box-shadow: 0 8px 48px 0 rgba(0,0,0,0.35), 0 1.5px 8px 0 rgba(0,0,0,0.10);
+    padding: 3.2rem 2.5rem 2.5rem 2.5rem;
+    min-width: 340px;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    border: 1.5px solid rgba(255,255,255,0.07);
+    backdrop-filter: blur(2.5px);
+}
+.scenario-badge {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #ff9800;
+    margin-bottom: 1.2rem;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    text-transform: uppercase;
+}
+.scenario-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 1.1rem;
+    letter-spacing: -1.5px;
+    text-shadow: 0 4px 32px rgba(0,0,0,0.25);
+    text-align: center;
+}
+.scenario-tagline {
+    font-size: 1.18rem;
+    color: #e0e0e0;
+    margin-bottom: 2.2rem;
+    text-align: center;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    min-height: 48px;
+}
+.play-btn-cinematic {
+    font-size: 1.5rem;
+    font-weight: 800;
+    padding: 1.1rem 3.2rem;
+    border-radius: 1.5rem;
+    border: none;
+    background: linear-gradient(90deg, #ff9800 0%, #ffb74d 100%);
+    color: #fff;
+    box-shadow: 0 4px 32px rgba(255,152,0,0.18), 0 1.5px 8px 0 rgba(0,0,0,0.10);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    margin-top: 1.2rem;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    filter: drop-shadow(0 0 16px #ff9800aa);
+    outline: none;
+}
+.play-btn-cinematic.fantasy {
+    background: linear-gradient(90deg, #b6aaff 0%, #4e5d94 100%);
+    filter: drop-shadow(0 0 16px #b6aaffaa);
+}
+.play-btn-cinematic.horror {
+    background: linear-gradient(90deg, #ffb4b4 0%, #4e3c5c 100%);
+    filter: drop-shadow(0 0 16px #ffb4b4aa);
+}
+.play-btn-cinematic.cyber {
+    background: linear-gradient(90deg, #00eaff 0%, #222 100%);
+    filter: drop-shadow(0 0 16px #00eaffaa);
+}
+.play-btn-cinematic:hover {
+    transform: scale(1.06);
+    box-shadow: 0 8px 48px rgba(255,152,0,0.28);
+    filter: brightness(1.12) drop-shadow(0 0 32px #ff9800cc);
+}
+@media (max-width: 900px) {
+    .menu-content {
+        max-width: 98vw;
+    }
+    .scenario-info {
+        min-width: 0;
+        max-width: 98vw;
+        padding: 2.2rem 1.2rem 1.2rem 1.2rem;
+    }
+    .scenario-title {
+        font-size: 1.5rem;
+    }
+    .play-btn-cinematic {
+        font-size: 1.1rem;
+        padding: 0.8rem 2rem;
+    }
+    .nav-arrow {
+        width: 48px; height: 48px; font-size: 1.5rem;
+    }
+}
+@media (max-width: 600px) {
+    .cinematic-menu, .background-blur {
+        min-height: 100vh;
+        height: 100vh;
+    }
+    .scenario-info {
+        padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+    }
+    .scenario-title {
+        font-size: 1.1rem;
+    }
+    .scenario-tagline {
+        font-size: 0.95rem;
+    }
+    .play-btn-cinematic {
+        font-size: 0.95rem;
+        padding: 0.7rem 1.2rem;
+    }
+    .nav-arrow {
+        width: 36px; height: 36px; font-size: 1.1rem;
+    }
+}
+
