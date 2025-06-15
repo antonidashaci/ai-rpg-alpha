@@ -17,6 +17,18 @@
             <div class="game-subtitle">An AI-Driven Text Adventure</div>
         </header>
 
+        <!-- Fixed Top Menu Bar -->
+        <nav class="main-menu-bar">
+            <ul class="menu-list">
+                <li class="menu-item" id="menuMain">🏠 Main Menu</li>
+                <li class="menu-item" id="menuCharCreate">🧙 Character Creation</li>
+                <li class="menu-item" id="menuSettings">⚙️ Settings</li>
+                <li class="menu-item" id="menuSaveLoad">💾 Save/Load</li>
+                <li class="menu-item" id="menuHelp">❓ Help</li>
+                <li class="menu-item" id="menuExit">🚪 Exit</li>
+            </ul>
+        </nav>
+
         <!-- Main Game Area -->
         <main class="game-main">
             <!-- Player Info Panel -->
@@ -36,19 +48,43 @@
                             </div>
                             <div class="stat-item">
                                 <span class="stat-label">Health</span>
-                                <div class="stat-bar">
-                                    <div class="stat-bar-fill health-bar" id="healthBar" style="width: 100%"></div>
-                                    <span class="stat-bar-text" id="healthText">100/100</span>
-                                </div>
+                                <span class="stat-value" id="playerHealth">20/20</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-label">Mana</span>
-                                <div class="stat-bar">
-                                    <div class="stat-bar-fill mana-bar" id="manaBar" style="width: 100%"></div>
-                                    <span class="stat-bar-text" id="manaText">50/50</span>
-                                </div>
+                                <span class="stat-label">XP</span>
+                                <span class="stat-value" id="playerXP">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Gold</span>
+                                <span class="stat-value" id="playerGold">50</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">AC</span>
+                                <span class="stat-value" id="characterAC">10</span>
                             </div>
                         </div>
+                        
+                        <!-- D&D Game Info -->
+                        <div class="dnd-info">
+                            <div class="stat-item">
+                                <span class="stat-label">Location</span>
+                                <span class="stat-value" id="playerLocation">Ironhold Village</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Time</span>
+                                <span class="stat-value" id="gameTime">Morning</span>
+                            </div>
+                            <div class="stat-item" id="lastRoll" style="display: none;">
+                                <span class="stat-label">🎲 Last Roll</span>
+                                <span class="stat-value" id="rollResult">-</span>
+                            </div>
+                        </div>
+                        
+                        <!-- D&D Abilities -->
+                        <div class="abilities-section" id="characterAbilities">
+                            <h4>🎲 Abilities</h4>
+                            <div class="abilities-loading">Rolling abilities...</div>
+                        </div></div>
                         
                         <!-- BG3-Style Combat Resources -->
                         <div class="combat-resources" id="combatResources">
@@ -107,8 +143,26 @@
                         </div>
                     </div>
 
+                    <!-- D&D Equipment -->
+                    <div class="equipment-section">
+                        <div class="equipment-item" id="characterWearing">
+                            <h4>👕 Wearing</h4>
+                            <div class="equipment-loading">Loading...</div>
+                        </div>
+                        <div class="equipment-item" id="characterWielding">
+                            <h4>⚔️ Wielding</h4>
+                            <div class="equipment-loading">Loading...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- D&D Quest -->
+                    <div class="quest-section" id="characterQuest">
+                        <h4>📜 Quest</h4>
+                        <p>None</p>
+                    </div>
+
                     <div class="inventory-section">
-                        <h3>Inventory</h3>
+                        <h3>🎒 Inventory</h3>
                         <div class="inventory-list" id="inventoryList">
                             <div class="inventory-empty">No items</div>
                         </div>
@@ -122,10 +176,17 @@
                 <div class="narrative-container">
                     <div class="narrative-text" id="narrativeText">
                         <div class="welcome-message">
-                            <h2>Welcome to AI-RPG-Alpha!</h2>
-                            <p>Enter your name to begin your adventure in a world where every choice shapes your destiny. 
-                            This AI-driven text adventure will respond to your decisions with unique narratives and consequences.</p>
-                            <p>Your journey awaits...</p>
+                            <h2>🎲 Welcome to AI-RPG-Alpha D&D Adventure!</h2>
+                            <p>Enter your name to begin your epic D&D-style adventure in the realm of Tamriel. 
+                            This advanced AI Game Master will guide you through a rich fantasy world with:</p>
+                            <ul>
+                                <li>🎲 <strong>Real D&D 5e Rules</strong> - Dice rolls, ability checks, and combat</li>
+                                <li>⚔️ <strong>Character Progression</strong> - Level up, gain XP, and improve abilities</li>
+                                <li>🏰 <strong>Rich Storytelling</strong> - AI-powered narratives that adapt to your choices</li>
+                                <li>🎭 <strong>Multiple AI Providers</strong> - Choose between Gemini, GPT-4, or Groq</li>
+                            </ul>
+                            <p><strong>You are Ra'el</strong>, a 36-year-old Human Monk (Way of Shadow, Hermit background).</p>
+                            <p>Your journey in the Northern Realms awaits...</p>
                         </div>
                     </div>
                 </div>
@@ -198,12 +259,65 @@
                 <input type="range" id="volumeSlider" min="0" max="100" value="30" class="volume-slider">
             </div>
         </div>
+
+        <!-- Character Creation Modal -->
+        <div class="modal-overlay" id="charCreateModal" style="display:none;">
+            <div class="modal-content">
+                <h2>Create Your Character</h2>
+                <form id="charCreateForm">
+                    <label>Name:
+                        <input type="text" id="charNameInput" maxlength="20" placeholder="Enter name..." required />
+                    </label>
+                    <label>Gender:
+                        <select id="charGenderInput">
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="nonbinary">Non-binary</option>
+                        </select>
+                    </label>
+                    <label>Portrait:
+                        <div id="charPortraitPreview" class="portrait-preview"></div>
+                        <button type="button" id="randomPortraitBtn">🎲 Random Portrait</button>
+                    </label>
+                    <label>Background:
+                        <select id="charBackgroundInput">
+                            <option value="hermit">Hermit</option>
+                            <option value="noble">Noble</option>
+                            <option value="outlander">Outlander</option>
+                            <option value="acolyte">Acolyte</option>
+                            <option value="soldier">Soldier</option>
+                        </select>
+                    </label>
+                    <label>Class:
+                        <select id="charClassInput">
+                            <option value="monk">Monk</option>
+                            <option value="wizard">Wizard</option>
+                            <option value="rogue">Rogue</option>
+                            <option value="fighter">Fighter</option>
+                            <option value="cleric">Cleric</option>
+                        </select>
+                    </label>
+                    <div class="ability-rolls">
+                        <h4>Roll Abilities</h4>
+                        <div id="abilityRolls">
+                            <!-- Ability scores will be generated here -->
+                        </div>
+                        <button type="button" id="rollAbilitiesBtn">🎲 Roll Abilities</button>
+                        <button type="button" id="randomCharBtn">Randomize All</button>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="submit" class="modal-confirm">Create Character</button>
+                        <button type="button" class="modal-cancel" id="closeCharModal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Footer -->
     <footer class="game-footer">
         <div class="footer-content">
-            <p>&copy; 2024 AI-RPG-Alpha v0.1.0 - An AI-Driven Text Adventure Engine</p>
+            <p>&copy; 2024 AI-RPG-Alpha v0.3.0 - Advanced D&D AI Game Master</p>
             <div class="footer-links">
                 <span class="api-status" id="apiStatus">API: Checking...</span>
                 <span class="turn-counter">Turn: <span id="turnCounter">0</span></span>
@@ -211,6 +325,7 @@
         </div>
     </footer>
 
+    <script src="components/settings.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

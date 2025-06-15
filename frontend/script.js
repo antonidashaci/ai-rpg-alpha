@@ -1227,10 +1227,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         window.gameSettings.openSettingsPanel();
     };
-    // Save/Load modal stub
-    window.showSaveLoadModal = function() {
-        alert('Save/Load coming soon!');
-    };
+    // Save/Load modal implementation
+    function showSaveLoadModal() {
+        let modal = document.getElementById('saveLoadModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'saveLoadModal';
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h2>Save / Load Game</h2>
+                    <div style="margin-bottom:1rem;">
+                        <button id="saveGameBtnModal" class="btn-primary">💾 Save Game</button>
+                        <button id="loadGameBtnModal" class="btn-secondary">📂 Load Game</button>
+                    </div>
+                    <div id="saveLoadStatus" style="min-height:2em;"></div>
+                    <button class="modal-cancel" id="closeSaveLoadModal">Close</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            document.getElementById('closeSaveLoadModal').onclick = () => modal.style.display = 'none';
+            document.getElementById('saveGameBtnModal').onclick = () => {
+                try {
+                    localStorage.setItem('aiRpgGameState', JSON.stringify(window.game.gameState));
+                    document.getElementById('saveLoadStatus').textContent = 'Game saved!';
+                } catch (e) {
+                    document.getElementById('saveLoadStatus').textContent = 'Save failed!';
+                }
+            };
+            document.getElementById('loadGameBtnModal').onclick = () => {
+                try {
+                    const data = localStorage.getItem('aiRpgGameState');
+                    if (data) {
+                        window.game.gameState = JSON.parse(data);
+                        window.game.updatePlayerInfo();
+                        if (window.game.gameState.character) updateCharacterSummary();
+                        document.getElementById('saveLoadStatus').textContent = 'Game loaded!';
+                    } else {
+                        document.getElementById('saveLoadStatus').textContent = 'No saved game found.';
+                    }
+                } catch (e) {
+                    document.getElementById('saveLoadStatus').textContent = 'Load failed!';
+                }
+            };
+        }
+        modal.style.display = 'flex';
+    }
     // Help modal stub
     window.showHelpModal = function() {
         alert('Help coming soon!');

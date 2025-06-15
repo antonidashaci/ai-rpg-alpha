@@ -1846,3 +1846,83 @@ p {
     }
 }
 
+/* Save/Load Modal Styles */
+#saveLoadModal.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(10,10,20,0.75);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s;
+}
+#saveLoadModal .modal-content {
+    background: var(--bg-glass-light, #23232b);
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    padding: 2.2rem 2rem 1.5rem 2rem;
+    min-width: 320px;
+    max-width: 95vw;
+    color: var(--text-primary, #fff);
+    position: relative;
+    animation: popIn 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#saveLoadModal h2 {
+    margin-top: 0;
+    font-size: 1.5rem;
+    text-align: center;
+}
+#saveLoadModal .btn-primary, #saveLoadModal .btn-secondary {
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 1.2rem;
+    border: none;
+    border-radius: 1rem;
+    background: var(--color-accent, #ff9800);
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+#saveLoadModal .btn-secondary {
+    background: #444;
+}
+#saveLoadModal .btn-primary:hover {
+    background: #ffa726;
+    box-shadow: 0 2px 8px rgba(255,152,0,0.15);
+}
+#saveLoadModal .modal-cancel {
+    background: #222;
+    color: #fff;
+    border-radius: 1rem;
+    padding: 0.5rem 1.2rem;
+    margin-top: 1rem;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+#saveLoadModal .modal-cancel:hover {
+    background: #333;
+}
+#saveLoadStatus {
+    color: var(--color-accent, #ff9800);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+@media (max-width: 600px) {
+    #saveLoadModal .modal-content {
+        min-width: 90vw;
+        padding: 1.2rem 0.5rem;
+    }
+    #saveLoadModal h2 {
+        font-size: 1.1rem;
+    }
+}
+
