@@ -1,0 +1,153 @@
+[
+  {
+    "id": "village_defense",
+    "title": "Defend the Village",
+    "location": "starting_village",
+    "tags": ["combat", "heroic", "main_story"],
+    "intro": "The village elder approaches you with urgent news. A band of goblins has been spotted near the village outskirts, and they seem to be planning an attack. The villagers are frightened, and the local militia is overwhelmed. Your skills could make the difference between safety and disaster.",
+    "objectives": [
+      "Investigate the goblin threat near the village",
+      "Defeat or drive away the goblin raiders",
+      "Report back to the village elder"
+    ],
+    "success": "You successfully drive off the goblin raiders, saving the village from certain destruction. The grateful villagers cheer your name, and the elder rewards you for your bravery. Word of your heroic deed spreads throughout the region.",
+    "failure": "Despite your best efforts, the goblins prove too numerous and cunning. You are forced to retreat, and the village suffers significant damage. However, your intervention prevented a complete massacre, and the survivors remember your courage.",
+    "reward": {
+      "gold": 150,
+      "items": ["Iron Sword", "Village Hero's Cloak"],
+      "experience": 75
+    },
+    "risk": "combat",
+    "consequence_thread": {
+      "trigger_turn": 5,
+      "event": "goblin_revenge",
+      "description": "The surviving goblins remember your interference and plan their revenge"
+    }
+  },
+  {
+    "id": "herb_gathering",
+    "title": "The Healer's Request",
+    "location": "forest_entrance",
+    "tags": ["exploration", "peaceful", "side_story"],
+    "intro": "An elderly healer in the village has fallen ill with a mysterious ailment. She needs rare moonflower petals that only bloom in the depths of the Whispering Woods during the full moon. The journey is treacherous, but the healer's knowledge could prove invaluable to the village's future.",
+    "objectives": [
+      "Enter the Whispering Woods at night",
+      "Find and gather moonflower petals",
+      "Return safely to the village healer"
+    ],
+    "success": "You successfully navigate the mystical forest and gather the precious moonflower petals. The healer recovers from her illness and, in gratitude, teaches you ancient healing techniques and shares valuable knowledge about the forest's secrets.",
+    "failure": "The forest's magical defenses prove too strong, or you become lost in its winding paths. You return empty-handed, but the healer appreciates your effort and offers what help she can with her remaining strength.",
+    "reward": {
+      "gold": 75,
+      "items": ["Healing Potion", "Forest Guide's Map"],
+      "experience": 50
+    },
+    "risk": "mystery",
+    "consequence_thread": {
+      "trigger_turn": 3,
+      "event": "forest_blessing",
+      "description": "The forest spirits take notice of your respectful presence and may offer aid in the future"
+    }
+  },
+  {
+    "id": "merchant_escort",
+    "title": "Safe Passage",
+    "location": "starting_village",
+    "tags": ["escort", "travel", "commerce"],
+    "intro": "A wealthy merchant needs protection for his caravan traveling to the next town. Bandits have been increasingly active on the trade routes, and he's willing to pay handsomely for a skilled guard. The journey will take you through dangerous territory, but it's an opportunity to see more of the world.",
+    "objectives": [
+      "Meet with the merchant and assess the caravan",
+      "Escort the caravan safely through bandit territory",
+      "Deliver the goods to the destination town"
+    ],
+    "success": "You successfully protect the merchant caravan from bandit attacks and wild beasts. The grateful merchant pays you well and offers to put in a good word with other traders. Your reputation as a reliable guard spreads among the merchant community.",
+    "failure": "Despite your efforts, the caravan suffers losses to bandits or other dangers. The merchant is disappointed but recognizes that you did your best under difficult circumstances. You still receive partial payment for your efforts.",
+    "reward": {
+      "gold": 100,
+      "items": ["Traveler's Boots", "Merchant's Recommendation"],
+      "experience": 60
+    },
+    "risk": "mystery",
+    "consequence_thread": {
+      "trigger_turn": 4,
+      "event": "merchant_network",
+      "description": "Your reputation with merchants opens new trading opportunities and information networks"
+    }
+  },
+  {
+    "id": "ancient_artifact",
+    "title": "The Lost Relic",
+    "location": "ancient_ruins",
+    "tags": ["exploration", "mystery", "ancient", "main_story"],
+    "intro": "Rumors speak of an ancient artifact hidden within the crumbling ruins outside the village. Local scholars believe it could be a relic from the lost civilization that once thrived in this region. However, the ruins are said to be cursed, and strange lights have been seen flickering among the stones at night.",
+    "objectives": [
+      "Explore the ancient ruins carefully",
+      "Solve the puzzles protecting the artifact",
+      "Retrieve the relic without triggering ancient traps"
+    ],
+    "success": "You successfully navigate the ancient traps and puzzles, recovering a powerful artifact that pulses with mysterious energy. The relic grants you insight into the lost civilization and may hold the key to understanding greater mysteries in the world.",
+    "failure": "The ancient defenses prove too complex or dangerous, forcing you to retreat. However, you gain valuable knowledge about the ruins' layout and the nature of the civilization that built them, which may prove useful in future attempts.",
+    "reward": {
+      "gold": 200,
+      "items": ["Ancient Relic", "Scholar's Notes", "Mystic Crystal"],
+      "experience": 100
+    },
+    "risk": "mystery",
+    "consequence_thread": {
+      "trigger_turn": 6,
+      "event": "ancient_awakening",
+      "description": "Disturbing the ruins has awakened something that has slept for centuries"
+    }
+  },
+  {
+    "id": "dragon_encounter",
+    "title": "The Sleeping Dragon",
+    "location": "ancient_ruins",
+    "tags": ["combat", "epic", "dragon", "legendary"],
+    "intro": "Deep within the most dangerous part of the ancient ruins, a young dragon has made its lair. While not yet fully grown, it poses a significant threat to anyone who ventures too close. Some say the dragon guards a treasure hoard, while others believe it's simply a dangerous beast that must be dealt with.",
+    "objectives": [
+      "Locate the dragon's lair in the ruins",
+      "Confront the dragon (combat, negotiation, or stealth)",
+      "Resolve the threat to future explorers"
+    ],
+    "success": "Through courage, cunning, or diplomacy, you successfully deal with the dragon threat. Whether through combat victory, successful negotiation, or clever misdirection, you've made the ruins safer for future explorers and gained the respect of all who hear your tale.",
+    "failure": "The dragon proves too powerful or clever, forcing you to retreat with significant injuries. However, you've learned valuable information about the creature's capabilities and weaknesses that could prove useful in future encounters.",
+    "reward": {
+      "gold": 500,
+      "items": ["Dragon Scale Armor", "Flame-touched Sword", "Dragon's Hoard Key"],
+      "experience": 200
+    },
+    "risk": "combat",
+    "consequence_thread": {
+      "trigger_turn": 8,
+      "event": "dragon_legacy",
+      "description": "Your encounter with the dragon has far-reaching consequences that will shape your legend"
+    }
+  },
+  {
+    "id": "mystery_disappearance",
+    "title": "The Vanishing Villagers",
+    "location": "starting_village",
+    "tags": ["mystery", "investigation", "supernatural"],
+    "intro": "Several villagers have mysteriously disappeared over the past few weeks, always during the new moon. No trace of them has been found, and the remaining villagers are growing increasingly fearful. Strange whispers have been heard in the night, and some claim to have seen shadowy figures moving at the edge of the forest.",
+    "objectives": [
+      "Investigate the disappearances and gather clues",
+      "Discover the pattern behind the vanishings",
+      "Confront whatever is responsible for the disappearances"
+    ],
+    "success": "Through careful investigation and brave action, you uncover the truth behind the disappearances and put an end to the threat. The missing villagers are found (alive or their fate revealed), and the village can rest easy once more.",
+    "failure": "Despite your efforts, the mystery remains unsolved, and the disappearances may continue. However, your investigation has provided valuable clues that may help future investigators, and you've learned to be more cautious of supernatural threats.",
+    "reward": {
+      "gold": 125,
+      "items": ["Detective's Magnifying Glass", "Protective Charm"],
+      "experience": 80
+    },
+    "risk": "mystery",
+    "consequence_thread": {
+      "trigger_turn": 7,
+      "event": "supernatural_attention",
+      "description": "Your investigation into supernatural matters has drawn the attention of otherworldly entities"
+    }
+  }
+]
+

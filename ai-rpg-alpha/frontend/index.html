@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI-RPG Alpha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    :root {
+      --clr-bg: #0e0f16;
+      --clr-surface: #1a1c26cc;
+      --clr-primary: #9d7dff;
+      --clr-accent: #e07b67;
+      --clr-text: #f1f0ff;
+    }
+    body {
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      font-family: "Inter", Arial, sans-serif;
+      min-height: 100vh;
+    }
+    .container {
+      width: min(90%, 1200px);
+      margin-inline: auto;
+    }
+    .glass {
+      background: var(--clr-surface);
+      backdrop-filter: blur(12px) saturate(120%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 1.5rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      padding: 2rem;
+    }
+    /* Demo buttons, etc. */
+    .cta-btn { background: var(--clr-primary); color:white; padding:0.8em 2em; border-radius:2em; font-weight:600; border:none; cursor:pointer; }
+    .choice-btn { background: var(--clr-surface); border:1px solid var(--clr-primary); color:var(--clr-text); border-radius:1em; padding:0.7em 1.5em; margin:0.5em 0.5em 0 0; font-weight:600; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <!-- HERO SECTION, FEATURES VS. BURADA OLABİLİR -->
+
+  <!-- Demo Alanı: -->
+  <section id="play" style="min-height:50vh; display:grid; place-items:center;"></section>
+
+  <footer style="background:#0b0c12; text-align:center; opacity:.8; font-size:0.9rem; padding:2rem;">
+    © 2025 AI-RPG Alpha • Built by two friends for players everywhere.
+  </footer>
+  
+  <script src="script.js"></script>
+</body>
+</html>

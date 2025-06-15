@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI-RPG Alpha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Phase 4: Enhanced UI & UX Styles -->
+  <link rel="stylesheet" href="frontend/styles/responsive.css" />
+  <link rel="stylesheet" href="frontend/styles/animations.css" />
+  <style>
+    :root {
+      --clr-bg: #0e0f16;
+      --clr-surface: #1a1c26cc;
+      --clr-primary: #9d7dff;
+      --clr-accent: #e07b67;
+      --clr-text: #f1f0ff;
+      --clr-success: #4caf50;
+      --clr-warning: #ff9800;
+      --clr-error: #f44336;
+    }
+    body {
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      font-family: "Inter", Arial, sans-serif;
+      min-height: 100vh;
+    }
+    .container {
+      width: min(90%, 1200px);
+      margin-inline: auto;
+    }
+    .glass {
+      background: var(--clr-surface);
+      backdrop-filter: blur(12px) saturate(120%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 1.5rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      padding: 2rem;
+    }
+    
+    /* Phase 4: Enhanced UI Components */
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: var(--clr-surface);
+      border-radius: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .header-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    
+    .settings-toggle, .audio-toggle {
+      background: var(--clr-primary);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+    
+    .settings-toggle:hover, .audio-toggle:hover {
+      background: var(--clr-accent);
+      transform: translateY(-2px);
+    }
+    
+    .cta-btn { 
+      background: var(--clr-primary); 
+      color: white; 
+      padding: 0.8em 2em; 
+      border-radius: 2em; 
+      font-weight: 600; 
+      border: none; 
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .cta-btn:hover {
+      background: var(--clr-accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    .choice-btn { 
+      background: var(--clr-surface); 
+      border: 1px solid var(--clr-primary); 
+      color: var(--clr-text); 
+      border-radius: 1em; 
+      padding: 0.7em 1.5em; 
+      margin: 0.5em 0.5em 0 0; 
+      font-weight: 600; 
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .choice-btn:hover {
+      border-color: var(--clr-accent);
+      background: var(--clr-accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    /* Status notifications */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 1rem 1.5rem;
+      border-radius: 0.5rem;
+      background: var(--clr-surface);
+      border-left: 4px solid var(--clr-primary);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 10000;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: all 0.3s ease;
+    }
+    
+    .notification.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    
+    .notification.success { border-left-color: var(--clr-success); }
+    .notification.warning { border-left-color: var(--clr-warning); }
+    .notification.error { border-left-color: var(--clr-error); }
+    
+    /* Loading spinner */
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: var(--clr-primary);
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Accessibility improvements */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 6px;
+      background: var(--clr-primary);
+      color: white;
+      padding: 8px;
+      text-decoration: none;
+      border-radius: 4px;
+      z-index: 10000;
+    }
+    
+    .skip-link:focus {
+      top: 6px;
+    }
+    
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+      .game-header {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .header-controls {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .glass {
+        padding: 1rem;
+        border-radius: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Phase 4: Accessibility Skip Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <!-- Phase 4: Enhanced Header with Controls -->
+  <header class="game-header">
+    <h1 style="font-size: 1.5rem; margin: 0;">🎮 AI-RPG Alpha</h1>
+    <div class="header-controls">
+      <button id="audioToggle" class="audio-toggle" title="Toggle Audio">🔊 Audio</button>
+      <button id="settingsToggle" class="settings-toggle" title="Open Settings">⚙️ Settings</button>
+    </div>
+  </header>
+
+  <!-- Main Game Area -->
+  <main id="main-content">
+    <section id="play" style="min-height:50vh; display:grid; place-items:center;"></section>
+  </main>
+
+  <!-- Phase 4: Status Container for Notifications -->
+  <div id="statusContainer" aria-live="polite"></div>
+
+  <footer style="background:#0b0c12; text-align:center; opacity:.8; font-size:0.9rem; padding:2rem;">
+    © 2025 AI-RPG Alpha • Built by two friends for players everywhere.
+  </footer>
+  
+  <!-- Phase 4: Component Scripts -->
+  <script src="frontend/components/settings.js"></script>
+  <script src="frontend/components/audio.js"></script>
+  <script src="script.js"></script>
+  
+  <!-- Phase 4: Enhanced Game Script -->
+  <script>
+    // Phase 4 enhancements for the existing game
+    document.addEventListener("DOMContentLoaded", function () {
+      
+      // Initialize Phase 4 features
+      initializePhase4Features();
+      
+      // Enhanced notification system
+      function showNotification(message, type = 'info', duration = 3000) {
+        const container = document.getElementById('statusContainer');
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        notification.setAttribute('role', 'alert');
+        
+        container.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => notification.classList.add('show'), 10);
+        
+        // Remove after duration
+        setTimeout(() => {
+          notification.classList.remove('show');
+          setTimeout(() => notification.remove(), 300);
+        }, duration);
+      }
+      
+      // Initialize Phase 4 features
+      function initializePhase4Features() {
+        // Audio toggle functionality
+        const audioToggle = document.getElementById('audioToggle');
+        if (audioToggle) {
+          audioToggle.addEventListener('click', () => {
+            if (window.audioSystem) {
+              const isMuted = window.audioSystem.toggleMute();
+              audioToggle.innerHTML = isMuted ? '🔇 Audio' : '🔊 Audio';
+              showNotification(isMuted ? 'Audio muted' : 'Audio enabled', 'info');
+            } else {
+              showNotification('Audio system not available', 'warning');
+            }
+          });
+        }
+        
+        // Settings toggle functionality
+        const settingsToggle = document.getElementById('settingsToggle');
+        if (settingsToggle) {
+          settingsToggle.addEventListener('click', () => {
+            if (window.gameSettings) {
+              window.gameSettings.toggleSettingsPanel();
+            } else {
+              showNotification('Settings not available', 'warning');
+            }
+          });
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+          // Ctrl+, for settings
+          if (e.ctrlKey && e.key === ',') {
+            e.preventDefault();
+            settingsToggle?.click();
+          }
+          
+          // Ctrl+M for mute
+          if (e.ctrlKey && e.key === 'm') {
+            e.preventDefault();
+            audioToggle?.click();
+          }
+        });
+        
+        // Listen for settings changes to update audio
+        window.addEventListener('settingsChanged', (event) => {
+          const settings = event.detail;
+          if (window.audioSystem) {
+            // Audio system will automatically update via its own listener
+            showNotification('Settings applied', 'success');
+          }
+        });
+        
+        // Listen for audio initialization
+        window.addEventListener('audioInitialized', () => {
+          showNotification('Audio system ready', 'success');
+          // Start background music if enabled
+          if (window.audioSystem && !window.audioSystem.settings.muteAll) {
+            window.audioSystem.setMusicForGameState('menu');
+          }
+        });
+        
+        // Add loading states for better UX
+        function addLoadingState(element, text = 'Loading...') {
+          if (element) {
+            element.disabled = true;
+            element.innerHTML = `<span class="loading-spinner"></span> ${text}`;
+          }
+        }
+        
+        function removeLoadingState(element, originalText) {
+          if (element) {
+            element.disabled = false;
+            element.innerHTML = originalText;
+          }
+        }
+        
+        // Expose utility functions globally
+        window.gameUI = {
+          showNotification,
+          addLoadingState,
+          removeLoadingState
+        };
+        
+        // Welcome message
+        setTimeout(() => {
+          showNotification('Welcome to AI-RPG Alpha! Press Ctrl+, for settings', 'info', 5000);
+        }, 1000);
+      }
+      
+      // Enhanced accessibility features
+      function enhanceAccessibility() {
+        // Add ARIA labels to interactive elements
+        document.querySelectorAll('button').forEach(btn => {
+          if (!btn.getAttribute('aria-label') && !btn.getAttribute('title')) {
+            btn.setAttribute('aria-label', btn.textContent || 'Button');
+          }
+        });
+        
+        // Improve focus management
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Tab') {
+            document.body.classList.add('keyboard-navigation');
+          }
+        });
+        
+        document.addEventListener('mousedown', () => {
+          document.body.classList.remove('keyboard-navigation');
+        });
+      }
+      
+      enhanceAccessibility();
+    });
+  </script>
+</body>
+</html>
