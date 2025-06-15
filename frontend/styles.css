@@ -2201,3 +2201,207 @@ p {
     font-style: italic;
 }
 
+/* Scenario Selection Modern AAA Styles */
+.scenario-select-container {
+    max-width: 1200px;
+    margin: 3rem auto 2rem auto;
+    padding: 0 1.5rem;
+    text-align: center;
+}
+
+.scenario-select-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 2.5rem;
+    color: #fff;
+    text-shadow: 0 4px 32px rgba(0,0,0,0.25);
+}
+
+.scenario-cards-grid {
+    display: flex;
+    gap: 2.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.scenario-card.modern {
+    background: rgba(30,30,40,0.92);
+    border-radius: 2.2rem;
+    box-shadow: 0 8px 48px 0 rgba(0,0,0,0.35), 0 1.5px 8px 0 rgba(0,0,0,0.10);
+    overflow: hidden;
+    width: 340px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s cubic-bezier(.4,2,.3,1), box-shadow 0.25s;
+    position: relative;
+    margin-bottom: 2rem;
+    border: 1.5px solid rgba(255,255,255,0.07);
+}
+
+.scenario-card.modern:hover {
+    transform: translateY(-12px) scale(1.035);
+    box-shadow: 0 16px 64px 0 rgba(0,0,0,0.45), 0 2px 16px 0 rgba(255,152,0,0.10);
+    z-index: 2;
+}
+
+.scenario-image-bleed {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    border-radius: 2.2rem 2.2rem 0 0;
+}
+
+.scenario-image-bleed img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s cubic-bezier(.4,2,.3,1);
+}
+
+.scenario-card.modern:hover .scenario-image-bleed img {
+    transform: scale(1.08) rotate(-1deg);
+    filter: brightness(1.08) saturate(1.1);
+}
+
+.scenario-gradient-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0.72;
+    transition: opacity 0.3s;
+}
+.scenario-gradient-overlay.fantasy {
+    background: linear-gradient(120deg, #2e2e4d 0%, #4e5d94 100%);
+}
+.scenario-gradient-overlay.horror {
+    background: linear-gradient(120deg, #222 0%, #4e3c5c 100%);
+}
+.scenario-gradient-overlay.cyber {
+    background: linear-gradient(120deg, #0ff 0%, #222 100%);
+}
+
+.scenario-card.modern:hover .scenario-gradient-overlay {
+    opacity: 0.88;
+}
+
+.scenario-tagline {
+    position: absolute;
+    bottom: 1.1rem;
+    left: 1.2rem;
+    right: 1.2rem;
+    z-index: 3;
+    color: #fff;
+    font-size: 1.08rem;
+    font-weight: 500;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    background: rgba(0,0,0,0.22);
+    border-radius: 0.7rem;
+    padding: 0.4rem 1rem;
+    pointer-events: none;
+}
+
+.scenario-card-content {
+    padding: 2.1rem 1.5rem 1.7rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: none;
+}
+
+.scenario-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.7rem;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.18));
+}
+.scenario-icon.fantasy { color: #b6aaff; }
+.scenario-icon.horror { color: #ffb4b4; }
+.scenario-icon.cyber { color: #00eaff; }
+
+.scenario-card-title {
+    font-size: 2.1rem;
+    font-weight: 800;
+    margin-bottom: 0.3rem;
+    color: #fff;
+    letter-spacing: -1px;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.18);
+}
+
+.scenario-genre {
+    font-size: 1.02rem;
+    font-weight: 700;
+    margin-bottom: 1.1rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.82;
+}
+.scenario-genre.fantasy { color: #b6aaff; }
+.scenario-genre.horror { color: #ffb4b4; }
+.scenario-genre.cyber { color: #00eaff; }
+
+.scenario-card-desc {
+    color: #e0e0e0;
+    font-size: 1.08rem;
+    margin-bottom: 2.1rem;
+    line-height: 1.5;
+    min-height: 60px;
+}
+
+.play-btn {
+    font-size: 1.25rem;
+    font-weight: 700;
+    padding: 0.9rem 2.2rem;
+    border-radius: 1.2rem;
+    border: none;
+    background: linear-gradient(90deg, #ff9800 0%, #ffb74d 100%);
+    color: #fff;
+    box-shadow: 0 2px 16px rgba(255,152,0,0.13);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+    margin-top: 0.5rem;
+    letter-spacing: 1px;
+}
+.play-btn.fantasy { background: linear-gradient(90deg, #b6aaff 0%, #4e5d94 100%); }
+.play-btn.horror { background: linear-gradient(90deg, #ffb4b4 0%, #4e3c5c 100%); }
+.play-btn.cyber { background: linear-gradient(90deg, #00eaff 0%, #222 100%); }
+
+.play-btn:hover {
+    transform: scale(1.04);
+    box-shadow: 0 4px 32px rgba(255,152,0,0.18);
+    filter: brightness(1.08);
+}
+
+@media (max-width: 1100px) {
+    .scenario-cards-grid {
+        gap: 1.2rem;
+    }
+    .scenario-card.modern {
+        width: 95vw;
+        max-width: 370px;
+    }
+}
+@media (max-width: 700px) {
+    .scenario-cards-grid {
+        flex-direction: column;
+        align-items: center;
+        gap: 2.2rem;
+    }
+    .scenario-card.modern {
+        width: 98vw;
+        max-width: 99vw;
+        min-width: 0;
+    }
+    .scenario-card-content {
+        padding: 1.2rem 0.7rem 1.2rem 0.7rem;
+    }
+    .scenario-image-bleed {
+        height: 140px;
+    }
+    .scenario-card-title {
+        font-size: 1.3rem;
+    }
+}
+
