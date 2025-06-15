@@ -1791,3 +1791,58 @@ p {
     }
 }
 
+.character-summary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--bg-glass-ultra, rgba(30,30,40,0.85));
+    border-radius: 1.2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+    padding: 0.7rem 1.2rem;
+    margin-bottom: 1.2rem;
+    margin-top: 0.5rem;
+    position: relative;
+    z-index: 2;
+}
+.char-summary-portrait {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #222 center/cover no-repeat;
+    border: 2.5px solid var(--color-accent, #ff9800);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.char-summary-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.char-summary-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary, #fff);
+    letter-spacing: 0.5px;
+}
+.char-summary-meta {
+    font-size: 1rem;
+    color: var(--text-secondary, #ccc);
+    margin-top: 0.2rem;
+}
+@media (max-width: 600px) {
+    .character-summary {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.7rem 0.5rem;
+    }
+    .char-summary-portrait {
+        width: 48px;
+        height: 48px;
+    }
+    .char-summary-name {
+        font-size: 1.05rem;
+    }
+    .char-summary-meta {
+        font-size: 0.9rem;
+    }
+}
+
