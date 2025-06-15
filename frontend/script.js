@@ -149,28 +149,53 @@ class AIRPGGame {
      * Set up all event listeners for UI interactions
      */
     setupEventListeners() {
-        // Start game button
-        document.getElementById('startGameBtn').addEventListener('click', () => {
-            this.startGame();
+        // Use event delegation for better performance
+        document.addEventListener('click', (e) => {
+            // Handle choice button clicks
+            if (e.target.closest('.choice-btn')) {
+                const button = e.target.closest('.choice-btn');
+                const index = Array.from(button.parentNode.children).indexOf(button);
+                this.selectChoice(index);
+            }
+            
+            // Handle inventory item clicks
+            if (e.target.closest('.inventory-item')) {
+                const item = e.target.closest('.inventory-item');
+                const itemName = item.querySelector('.item-name').textContent;
+                this.useItem(itemName);
+            }
         });
+
+        // Start game button
+        const startBtn = document.getElementById('startGameBtn');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => this.startGame());
+        }
 
         // Enter key for player name input
-        document.getElementById('playerNameInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.startGame();
-            }
-        });
+        const nameInput = document.getElementById('playerNameInput');
+        if (nameInput) {
+            nameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.startGame();
+                }
+            });
+        }
 
         // Custom choice input
-        document.getElementById('submitCustomChoice').addEventListener('click', () => {
-            this.submitCustomChoice();
-        });
+        const customSubmit = document.getElementById('submitCustomChoice');
+        if (customSubmit) {
+            customSubmit.addEventListener('click', () => this.submitCustomChoice());
+        }
 
-        document.getElementById('customChoiceInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.submitCustomChoice();
-            }
-        });
+        const customInput = document.getElementById('customChoiceInput');
+        if (customInput) {
+            customInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.submitCustomChoice();
+                }
+            });
+        }
 
         // Toggle input mode
         document.getElementById('toggleInputMode').addEventListener('click', () => {
@@ -203,6 +228,27 @@ class AIRPGGame {
         document.getElementById('volumeSlider').addEventListener('input', (e) => {
             this.setVolume(e.target.value / 100);
         });
+
+        // Menu items
+        const menuItems = {
+            'menuMain': () => window.location.href = 'scenario-selection.html',
+            'menuCharCreate': () => showCharCreateModal(),
+            'menuSettings': () => {
+                if (typeof GameSettings !== 'undefined') {
+                    GameSettings.show();
+                }
+            },
+            'menuSaveLoad': () => showSaveLoadModal(),
+            'menuHelp': () => this.showHelp(),
+            'menuExit': () => this.exitGame()
+        };
+
+        Object.entries(menuItems).forEach(([id, handler]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('click', handler);
+            }
+        });
     }
 
     /**
@@ -210,18 +256,38 @@ class AIRPGGame {
      */
     async checkAPIStatus() {
         try {
-            const response = await fetch(`${this.apiBaseUrl}/health`);
+            const response = await fetch(`${this.apiBaseUrl}/health`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                signal: AbortSignal.timeout(5000) // 5 second timeout
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
+            console.log('API Status:', data);
             
-            document.getElementById('apiStatus').textContent = 
-                `API: ${data.status === 'healthy' ? 'Connected' : 'Issues'}`;
-            document.getElementById('apiStatus').style.color = 
-                data.status === 'healthy' ? 'var(--success)' : 'var(--danger)';
-                
+            // Show API status in UI
+            this.showStatus('Connected to game server', 'success');
+            
+            return data;
+            
         } catch (error) {
             console.error('API check failed:', error);
-            document.getElementById('apiStatus').textContent = 'API: Offline';
-            document.getElementById('apiStatus').style.color = 'var(--danger)';
+            
+            if (error.name === 'AbortError') {
+                this.showStatus('Server connection timeout. Check your internet connection.', 'error');
+            } else if (error.message.includes('Failed to fetch')) {
+                this.showStatus('Cannot connect to game server. Is the backend running?', 'error');
+            } else {
+                this.showStatus(`Server error: ${error.message}`, 'error');
+            }
+            
+            return null;
         }
     }
 
@@ -307,60 +373,64 @@ class AIRPGGame {
      * Make a turn request to the backend (D&D Enhanced)
      */
     async makeTurnRequest(choice, playerName = null) {
-        let requestData = null;
         try {
-            requestData = {
-                player_name: playerName || this.gameState.character.name,
+            const playerId = playerName || this.gameState.character.name || 'Player';
+            
+            const requestData = {
+                player_id: playerId,
                 choice: choice,
-                scenario: this.gameState.selectedScenario || 'northern_realms',
-                ai_provider: this.gameState.aiProvider,
-                api_key: this.gameState.apiKey
+                game_state: {
+                    turn_number: this.gameState.turnNumber,
+                    character: this.gameState.character,
+                    scenario: this.gameState.selectedScenario,
+                    location: this.gameState.location,
+                    time_of_day: this.gameState.timeOfDay
+                }
             };
-            
-            // Include D&D character data
-            if (this.gameState.character) {
-                requestData.character_data = this.gameState.character;
-            }
-            
-            // Include scenario-specific data
-            if (this.gameState.combatResources) {
-                requestData.combat_resources = this.gameState.combatResources;
-            }
-            
-            if (this.gameState.sanityState) {
-                requestData.sanity_state = this.gameState.sanityState;
-            }
-            
-            console.log('Sending D&D request data:', requestData);
-            
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
             const response = await fetch(`${this.apiBaseUrl}/turn`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(requestData)
+                body: JSON.stringify(requestData),
+                signal: controller.signal
             });
+
+            clearTimeout(timeoutId);
 
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+                throw new Error(`Server error: ${response.status} - ${errorText}`);
             }
 
             const data = await response.json();
-            
-            // Update D&D game state from response
-            if (data.game_type === 'dnd_adventure') {
-                this.updateDnDGameState(data);
-            }
-            
             return data;
             
         } catch (error) {
-            console.error('Turn request failed:', error);
-            console.error('Request data was:', requestData);
-            console.error('Error details:', error.message);
-            this.showStatus(`Failed to process your choice: ${error.message}`, 'error');
-            return null;
+            console.error('API request failed:', error);
+            
+            if (error.name === 'AbortError') {
+                this.showStatus('Request timeout. The server is taking too long to respond.', 'error');
+            } else if (error.message.includes('Failed to fetch')) {
+                this.showStatus('Network error. Check your internet connection.', 'error');
+            } else {
+                this.showStatus(`Request failed: ${error.message}`, 'error');
+            }
+            
+            // Fallback response if API fails
+            return {
+                narrative: `You chose to ${choice}. The story continues... (Offline mode)`,
+                choices: ["Continue exploring", "Rest here", "Check your equipment", "Look around"],
+                metadata: {
+                    location: this.gameState.location,
+                    risk_level: "calm",
+                    turn_number: this.gameState.turnNumber + 1
+                }
+            };
         }
     }
     
@@ -368,28 +438,32 @@ class AIRPGGame {
      * Update D&D game state from server response
      */
     updateDnDGameState(response) {
-        if (response.metadata) {
-            const meta = response.metadata;
-            this.gameState.turnNumber = meta.turn || this.gameState.turnNumber;
-            this.gameState.timeOfDay = meta.time_of_day || this.gameState.timeOfDay;
-            this.gameState.location = meta.location || this.gameState.location;
-            this.gameState.lastRoll = meta.last_roll;
-            
-            // Update character stats
-            if (meta.health) this.gameState.character.health = meta.health;
-            if (meta.xp !== undefined) this.gameState.character.xp = meta.xp;
-            if (meta.level !== undefined) this.gameState.character.level = meta.level;
-            if (meta.gold !== undefined) this.gameState.character.gold = meta.gold;
+        // Update narrative
+        if (response.narrative) {
+            this.gameState.currentNarrative = response.narrative;
         }
         
-        if (response.character) {
-            const char = response.character;
-            if (char.abilities) this.gameState.character.abilities = char.abilities;
-            if (char.inventory) this.gameState.character.inventory = char.inventory;
-            if (char.wearing) this.gameState.character.wearing = char.wearing;
-            if (char.wielding) this.gameState.character.wielding = char.wielding;
-            if (char.armor_class !== undefined) this.gameState.character.armor_class = char.armor_class;
-            if (char.quest) this.gameState.character.quest = char.quest;
+        // Update available choices
+        if (response.choices) {
+            this.gameState.availableChoices = response.choices;
+        }
+        
+        // Update metadata
+        if (response.metadata) {
+            if (response.metadata.location) {
+                this.gameState.location = response.metadata.location;
+            }
+            if (response.metadata.risk_level) {
+                this.gameState.riskLevel = response.metadata.risk_level;
+            }
+            if (response.metadata.turn_number) {
+                this.gameState.turnNumber = response.metadata.turn_number;
+            }
+        }
+        
+        // Update character stats if provided
+        if (response.character_updates) {
+            Object.assign(this.gameState.character, response.character_updates);
         }
     }
 
@@ -397,73 +471,69 @@ class AIRPGGame {
      * Handle choice selection
      */
     async selectChoice(choiceIndex) {
-        if (choiceIndex < 0 || choiceIndex >= this.gameState.availableChoices.length) {
-            this.showStatus('Invalid choice selected', 'error');
+        if (!this.gameState.gameStarted) {
+            await this.startGame();
             return;
         }
 
-        const selectedChoice = this.gameState.availableChoices[choiceIndex];
-        await this.processPlayerChoice(selectedChoice);
+        const choices = document.querySelectorAll('.choice-btn');
+        if (choiceIndex >= 0 && choiceIndex < choices.length) {
+            const choice = choices[choiceIndex].querySelector('.cmd-label').textContent;
+            await this.processPlayerChoice(choice);
+        }
     }
 
     /**
      * Submit custom choice
      */
     async submitCustomChoice() {
-        const customChoice = document.getElementById('customChoiceInput').value.trim();
+        const customInput = document.getElementById('customChoiceInput');
+        const choice = customInput.value.trim();
         
-        if (!customChoice) {
-            this.showStatus('Please enter your action', 'error');
-            return;
+        if (choice) {
+            customInput.value = '';
+            await this.processPlayerChoice(choice);
         }
-
-        if (customChoice.length < 3) {
-            this.showStatus('Please provide a more detailed action', 'error');
-            return;
-        }
-
-        document.getElementById('customChoiceInput').value = '';
-        await this.processPlayerChoice(customChoice);
     }
 
     /**
      * Process player choice and get response
      */
     async processPlayerChoice(choice) {
-        this.showLoading(true);
-
         try {
-            const response = await this.makeTurnRequest(choice);
+            this.showLoading(true);
+            this.showStatus('Processing your choice...', 'info');
             
-            if (response) {
-                this.gameState.currentNarrative = response.narrative;
-                this.gameState.availableChoices = response.choices;
-                this.gameState.turnNumber++;
-                
-                // Update music based on metadata
-                if (response.metadata && response.metadata.risk_level) {
-                    this.changeMusic(response.metadata.risk_level);
-                }
-                
-                // Update player stats if provided in metadata
-                if (response.metadata && response.metadata.player_stats) {
-                    this.gameState.player.stats = response.metadata.player_stats;
-                }
-                
-                // Handle quest updates
-                this.handleQuestUpdates(response);
-                
-                this.updateUI();
-                this.saveGameState();
-                
-                // Scroll narrative into view
-                document.getElementById('narrativeText').scrollTop = 0;
+            // Validate choice
+            if (!choice || choice.trim().length === 0) {
+                throw new Error('Please provide a valid choice');
             }
             
+            // Update turn counter
+            this.gameState.turnNumber++;
+            
+            // Make API request to backend
+            const response = await this.makeTurnRequest(choice, this.gameState.character.name);
+            
+            // Update game state with response
+            this.updateDnDGameState(response);
+            
+            // Update UI efficiently
+            this.updateUI();
+            
+            // Update scenario commands for next turn
+            if (typeof updateScenarioCommands === 'function') {
+                updateScenarioCommands();
+            }
+            
+            // Save game state
+            this.saveGameState();
+            
+            this.showLoading(false);
+            
         } catch (error) {
-            console.error('Failed to process choice:', error);
-            this.showStatus('Failed to process your choice. Please try again.', 'error');
-        } finally {
+            console.error('Error processing choice:', error);
+            this.showStatus(`Error: ${error.message}`, 'error');
             this.showLoading(false);
         }
     }
@@ -491,10 +561,20 @@ class AIRPGGame {
      * Update the entire UI
      */
     updateUI() {
-        this.updatePlayerInfo();
-        this.updateNarrative();
-        this.updateInputUI();
-        this.updateTurnCounter();
+        // Batch DOM updates for better performance
+        requestAnimationFrame(() => {
+            this.updateNarrative();
+            this.updateChoices();
+            this.updatePlayerInfo();
+            this.updateTurnCounter();
+            this.updateCombatResources();
+            this.updateSanityBar();
+            this.updateQuests();
+            this.updateInventory();
+            this.updateAbilities();
+            this.updateEquipment();
+            this.updateCharacterSummary();
+        });
     }
 
     /**
@@ -594,24 +674,41 @@ class AIRPGGame {
      * Update combat resources display (BG3-style)
      */
     updateCombatResources() {
-        const resources = this.gameState.combatResources;
+        const staminaBar = document.getElementById('staminaBar');
+        const staminaText = document.getElementById('staminaText');
+        const actionPoints = document.getElementById('actionPoints');
         
-        // Update stamina bar
-        const staminaPercentage = (resources.stamina / 100) * 100;
-        document.getElementById('staminaBar').style.width = `${staminaPercentage}%`;
-        document.getElementById('staminaText').textContent = `${resources.stamina}/100`;
-        
-        // Update action points
-        const actionPointsContainer = document.getElementById('actionPoints');
-        const actionPointElements = actionPointsContainer.querySelectorAll('.action-point');
-        
-        actionPointElements.forEach((element, index) => {
-            if (index < resources.actionPoints) {
-                element.classList.add('active');
+        if (staminaBar && staminaText) {
+            const stamina = this.gameState.combatResources.stamina;
+            const maxStamina = this.gameState.combatResources.maxStamina;
+            const percentage = (stamina / maxStamina) * 100;
+            
+            staminaBar.style.width = `${percentage}%`;
+            staminaText.textContent = `${stamina}/${maxStamina}`;
+            
+            // Visual feedback for low stamina
+            if (percentage < 25) {
+                staminaBar.style.backgroundColor = '#ff4444';
+            } else if (percentage < 50) {
+                staminaBar.style.backgroundColor = '#ffaa00';
             } else {
-                element.classList.remove('active');
+                staminaBar.style.backgroundColor = '#44ff44';
             }
-        });
+        }
+        
+        if (actionPoints) {
+            const points = this.gameState.combatResources.actionPoints;
+            const maxPoints = this.gameState.combatResources.maxActionPoints;
+            
+            const pointElements = actionPoints.querySelectorAll('.action-point');
+            pointElements.forEach((point, index) => {
+                if (index < points) {
+                    point.classList.add('active');
+                } else {
+                    point.classList.remove('active');
+                }
+            });
+        }
     }
 
     /**
@@ -668,20 +765,27 @@ class AIRPGGame {
      */
     updateQuests() {
         const questList = document.getElementById('questList');
-        const activeQuests = this.gameState.activeQuests;
+        if (!questList) return;
         
-        if (!activeQuests || activeQuests.length === 0) {
+        const activeQuests = this.gameState.activeQuests || [];
+        
+        if (activeQuests.length === 0) {
             questList.innerHTML = '<div class="quest-empty">No active quests</div>';
             return;
         }
         
-        questList.innerHTML = activeQuests.map(quest => 
-            `<div class="quest-item">
+        questList.innerHTML = activeQuests.map(quest => `
+            <div class="quest-item">
                 <div class="quest-title">${quest.title}</div>
                 <div class="quest-description">${quest.description}</div>
-                <div class="quest-progress">${quest.progress || 'Active'}</div>
-            </div>`
-        ).join('');
+                <div class="quest-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${(quest.progress / quest.objectives.length) * 100}%"></div>
+                    </div>
+                    <span class="progress-text">${quest.progress}/${quest.objectives.length}</span>
+                </div>
+            </div>
+        `).join('');
     }
 
     /**
@@ -689,16 +793,21 @@ class AIRPGGame {
      */
     updateInventory() {
         const inventoryList = document.getElementById('inventoryList');
-        const inventory = this.gameState.character?.inventory || [];
+        if (!inventoryList) return;
+        
+        const inventory = this.gameState.character.inventory || [];
         
         if (inventory.length === 0) {
             inventoryList.innerHTML = '<div class="inventory-empty">No items</div>';
             return;
         }
         
-        inventoryList.innerHTML = inventory.map(item => 
-            `<div class="inventory-item">${item}</div>`
-        ).join('');
+        inventoryList.innerHTML = inventory.map(item => `
+            <div class="inventory-item" onclick="game.useItem('${item.name}')">
+                <span class="item-name">${item.name}</span>
+                <span class="item-quantity">${item.quantity || 1}</span>
+            </div>
+        `).join('');
     }
     
     /**
@@ -761,16 +870,8 @@ class AIRPGGame {
      */
     updateNarrative() {
         const narrativeElement = document.getElementById('narrativeText');
-        
-        if (this.gameState.currentNarrative) {
-            // Format narrative text with proper paragraphs
-            const formattedNarrative = this.gameState.currentNarrative
-                .split('\n')
-                .filter(line => line.trim())
-                .map(line => `<p>${line.trim()}</p>`)
-                .join('');
-                
-            narrativeElement.innerHTML = formattedNarrative;
+        if (narrativeElement && this.gameState.currentNarrative) {
+            narrativeElement.innerHTML = `<div class="narrative-content">${this.gameState.currentNarrative}</div>`;
         }
     }
 
@@ -806,24 +907,39 @@ class AIRPGGame {
      */
     updateChoices() {
         const choicesList = document.getElementById('choicesList');
+        if (!choicesList) return;
         
-        if (!this.gameState.availableChoices || this.gameState.availableChoices.length === 0) {
-            choicesList.innerHTML = '<div class="no-choices">No choices available</div>';
-            return;
+        choicesList.innerHTML = '';
+        
+        if (this.gameState.availableChoices && this.gameState.availableChoices.length > 0) {
+            this.gameState.availableChoices.forEach((choice, index) => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn';
+                button.innerHTML = `<span class='cmd-label'>${choice}</span>`;
+                button.onclick = () => this.selectChoice(index);
+                choicesList.appendChild(button);
+            });
+        } else {
+            // Fallback choices
+            const fallbackChoices = ["Continue", "Look around", "Check equipment", "Rest"];
+            fallbackChoices.forEach((choice, index) => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn';
+                button.innerHTML = `<span class='cmd-label'>${choice}</span>`;
+                button.onclick = () => this.selectChoice(index);
+                choicesList.appendChild(button);
+            });
         }
-        
-        choicesList.innerHTML = this.gameState.availableChoices.map((choice, index) => 
-            `<button class="choice-btn" onclick="game.selectChoice(${index})">
-                ${choice}
-            </button>`
-        ).join('');
     }
 
     /**
      * Update turn counter
      */
     updateTurnCounter() {
-        document.getElementById('turnCounter').textContent = this.gameState.turnNumber;
+        const turnElement = document.getElementById('turnCounter');
+        if (turnElement) {
+            turnElement.textContent = `Turn ${this.gameState.turnNumber}`;
+        }
     }
 
     /**
@@ -1039,34 +1155,62 @@ class AIRPGGame {
      * Show loading overlay
      */
     showLoading(show) {
-        document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        const loadingElement = document.getElementById('loadingOverlay');
+        if (!loadingElement) {
+            // Create loading overlay if it doesn't exist
+            const overlay = document.createElement('div');
+            overlay.id = 'loadingOverlay';
+            overlay.className = 'loading-overlay';
+            overlay.innerHTML = `
+                <div class="loading-content">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Processing your choice...</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+        
+        const overlay = document.getElementById('loadingOverlay');
+        if (show) {
+            overlay.style.display = 'flex';
+            overlay.classList.add('show');
+        } else {
+            overlay.classList.remove('show');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        }
     }
 
     /**
      * Show status message
      */
     showStatus(message, type = 'info') {
-        const statusContainer = document.getElementById('statusContainer');
+        // Remove existing status messages
+        const existingMessages = document.querySelectorAll('.status-message');
+        existingMessages.forEach(msg => msg.remove());
         
+        // Create new status message
         const statusElement = document.createElement('div');
         statusElement.className = `status-message ${type}`;
         statusElement.textContent = message;
         
-        statusContainer.appendChild(statusElement);
+        document.body.appendChild(statusElement);
         
-        // Auto-remove after 5 seconds
+        // Show with animation
         setTimeout(() => {
-            if (statusElement.parentNode) {
-                statusElement.parentNode.removeChild(statusElement);
-            }
-        }, 5000);
+            statusElement.classList.add('show');
+        }, 100);
         
-        // Remove on click
-        statusElement.addEventListener('click', () => {
-            if (statusElement.parentNode) {
-                statusElement.parentNode.removeChild(statusElement);
-            }
-        });
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            statusElement.classList.remove('show');
+            setTimeout(() => {
+                if (statusElement.parentNode) {
+                    statusElement.remove();
+                }
+            }, 300);
+        }, 3000);
     }
 
     /**
@@ -1077,6 +1221,271 @@ class AIRPGGame {
             .split('_')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
+    }
+
+    updateCharacterSummary() {
+        const char = this.gameState.character;
+        if (!char || !char.name) return;
+        
+        const summaryDiv = document.querySelector('.character-summary');
+        if (!summaryDiv) {
+            // Create character summary if it doesn't exist
+            const playerPanel = document.querySelector('.player-panel');
+            if (playerPanel) {
+                const summary = document.createElement('div');
+                summary.className = 'character-summary';
+                summary.innerHTML = `
+                    <div class="char-summary-portrait" style="background-image: url('${char.portrait || 'https://api.dicebear.com/7.x/adventurer/svg?seed=default'}')"></div>
+                    <div class="char-summary-info">
+                        <div class="char-summary-name">${char.name}</div>
+                        <div class="char-summary-details">${char.class} • ${char.background}</div>
+                    </div>
+                `;
+                playerPanel.insertBefore(summary, playerPanel.firstChild);
+            }
+        } else {
+            // Update existing summary
+            const portrait = summaryDiv.querySelector('.char-summary-portrait');
+            const name = summaryDiv.querySelector('.char-summary-name');
+            const details = summaryDiv.querySelector('.char-summary-details');
+            
+            if (portrait) portrait.style.backgroundImage = `url('${char.portrait || 'https://api.dicebear.com/7.x/adventurer/svg?seed=default'}')`;
+            if (name) name.textContent = char.name;
+            if (details) details.textContent = `${char.class} • ${char.background}`;
+        }
+    }
+
+    useItem(itemName) {
+        const inventory = this.gameState.character.inventory || [];
+        const item = inventory.find(i => i.name === itemName);
+        
+        if (!item) return;
+        
+        // Handle different item types
+        if (item.type === 'consumable') {
+            this.consumeItem(item);
+        } else if (item.type === 'weapon') {
+            this.equipWeapon(item);
+        } else if (item.type === 'armor') {
+            this.equipArmor(item);
+        }
+        
+        this.updateInventory();
+        this.updateEquipment();
+        this.showStatus(`Used ${item.name}`, 'success');
+    }
+
+    consumeItem(item) {
+        // Remove from inventory
+        const inventory = this.gameState.character.inventory;
+        const index = inventory.findIndex(i => i.name === item.name);
+        
+        if (index !== -1) {
+            if (item.quantity > 1) {
+                item.quantity--;
+            } else {
+                inventory.splice(index, 1);
+            }
+        }
+        
+        // Apply effects
+        if (item.effects) {
+            if (item.effects.health) {
+                const currentHealth = parseInt(this.gameState.character.health.split('/')[0]);
+                const maxHealth = parseInt(this.gameState.character.health.split('/')[1]);
+                const newHealth = Math.min(currentHealth + item.effects.health, maxHealth);
+                this.gameState.character.health = `${newHealth}/${maxHealth}`;
+            }
+            
+            if (item.effects.stamina) {
+                this.gameState.combatResources.stamina = Math.min(
+                    this.gameState.combatResources.stamina + item.effects.stamina,
+                    this.gameState.combatResources.maxStamina
+                );
+            }
+        }
+    }
+
+    equipWeapon(weapon) {
+        // Unequip current weapon
+        const currentWeapon = this.gameState.character.wielding[0];
+        if (currentWeapon) {
+            this.gameState.character.inventory.push({
+                name: currentWeapon,
+                type: 'weapon',
+                quantity: 1
+            });
+        }
+        
+        // Equip new weapon
+        this.gameState.character.wielding = [weapon.name];
+        
+        // Remove from inventory
+        const inventory = this.gameState.character.inventory;
+        const index = inventory.findIndex(i => i.name === weapon.name);
+        if (index !== -1) {
+            inventory.splice(index, 1);
+        }
+    }
+
+    equipArmor(armor) {
+        // Unequip current armor
+        const currentArmor = this.gameState.character.wearing[0];
+        if (currentArmor) {
+            this.gameState.character.inventory.push({
+                name: currentArmor,
+                type: 'armor',
+                quantity: 1
+            });
+        }
+        
+        // Equip new armor
+        this.gameState.character.wearing = [armor.name];
+        
+        // Update armor class
+        if (armor.armor_class) {
+            this.gameState.character.armor_class = armor.armor_class;
+        }
+        
+        // Remove from inventory
+        const inventory = this.gameState.character.inventory;
+        const index = inventory.findIndex(i => i.name === armor.name);
+        if (index !== -1) {
+            inventory.splice(index, 1);
+        }
+    }
+
+    addQuest(quest) {
+        if (!this.gameState.activeQuests) {
+            this.gameState.activeQuests = [];
+        }
+        
+        this.gameState.activeQuests.push({
+            ...quest,
+            progress: 0,
+            started: new Date().toISOString()
+        });
+        
+        this.updateQuests();
+        this.showStatus(`New quest: ${quest.title}`, 'quest');
+    }
+
+    updateQuestProgress(questTitle, objectiveIndex) {
+        const quest = this.gameState.activeQuests.find(q => q.title === questTitle);
+        if (!quest) return;
+        
+        if (objectiveIndex >= 0 && objectiveIndex < quest.objectives.length) {
+            quest.progress = Math.max(quest.progress, objectiveIndex + 1);
+            
+            // Check if quest is complete
+            if (quest.progress >= quest.objectives.length) {
+                this.completeQuest(quest);
+            }
+        }
+        
+        this.updateQuests();
+    }
+
+    completeQuest(quest) {
+        // Remove from active quests
+        const index = this.gameState.activeQuests.findIndex(q => q.title === quest.title);
+        if (index !== -1) {
+            this.gameState.activeQuests.splice(index, 1);
+        }
+        
+        // Add to completed quests
+        if (!this.gameState.completedQuests) {
+            this.gameState.completedQuests = [];
+        }
+        this.gameState.completedQuests.push({
+            ...quest,
+            completed: new Date().toISOString()
+        });
+        
+        // Give rewards
+        if (quest.rewards) {
+            if (quest.rewards.xp) {
+                this.gameState.character.xp += quest.rewards.xp;
+                this.checkLevelUp();
+            }
+            
+            if (quest.rewards.gold) {
+                this.gameState.character.gold += quest.rewards.gold;
+            }
+            
+            if (quest.rewards.items) {
+                quest.rewards.items.forEach(item => {
+                    this.addItemToInventory(item);
+                });
+            }
+        }
+        
+        this.updateQuests();
+        this.updatePlayerInfo();
+        this.showStatus(`Quest completed: ${quest.title}`, 'success');
+    }
+
+    addItemToInventory(item) {
+        if (!this.gameState.character.inventory) {
+            this.gameState.character.inventory = [];
+        }
+        
+        const existingItem = this.gameState.character.inventory.find(i => i.name === item.name);
+        if (existingItem) {
+            existingItem.quantity = (existingItem.quantity || 1) + (item.quantity || 1);
+        } else {
+            this.gameState.character.inventory.push({
+                ...item,
+                quantity: item.quantity || 1
+            });
+        }
+        
+        this.updateInventory();
+    }
+
+    checkLevelUp() {
+        const xp = this.gameState.character.xp;
+        const level = this.gameState.character.level;
+        const xpForNextLevel = level * 100; // Simple XP formula
+        
+        if (xp >= xpForNextLevel) {
+            this.gameState.character.level++;
+            this.gameState.character.health = `${20 + (this.gameState.character.level - 1) * 5}/20`;
+            this.showStatus(`Level up! You are now level ${this.gameState.character.level}`, 'levelup');
+            this.updatePlayerInfo();
+        }
+    }
+
+    showHelp() {
+        const helpContent = `
+            <div class="help-content">
+                <h3>🎮 How to Play</h3>
+                <ul>
+                    <li><strong>Character Creation:</strong> Choose your class, background, and roll abilities</li>
+                    <li><strong>Combat:</strong> Use Attack, Defend, and special abilities</li>
+                    <li><strong>Inventory:</strong> Click items to use or equip them</li>
+                    <li><strong>Quests:</strong> Complete objectives to earn XP and rewards</li>
+                    <li><strong>Save/Load:</strong> Your progress is automatically saved</li>
+                </ul>
+                
+                <h3>🎲 D&D Rules</h3>
+                <ul>
+                    <li><strong>Abilities:</strong> Strength, Dexterity, Intelligence, Wisdom, Charisma</li>
+                    <li><strong>Combat:</strong> Use Action Points and manage Stamina</li>
+                    <li><strong>Leveling:</strong> Gain XP to level up and improve abilities</li>
+                </ul>
+            </div>
+        `;
+        
+        this.showStatus('Help information displayed in console', 'info');
+        console.log(helpContent);
+    }
+
+    exitGame() {
+        if (confirm('Are you sure you want to exit? Your progress will be saved.')) {
+            this.saveGameState();
+            window.close();
+        }
     }
 }
 
@@ -1210,143 +1619,103 @@ document.addEventListener('DOMContentLoaded', () => {
         portraitPreview.dataset.url = url;
     }
 
-    // Patch modal open logic
-    function showCharCreateModal() {
+    // Patch character creation submit for starting equipment
+    const oldCharCreateFormSubmit = document.getElementById('charCreateForm').onsubmit;
+    document.getElementById('charCreateForm').onsubmit = (e) => {
+        e.preventDefault();
+        const scenario = getScenarioKeySafe();
+        const classVal = document.getElementById('charClassInput').value;
+        const equip = (scenarioStartingEquipment[scenario][classVal] || {wearing:[], wielding:[], gold:20});
+        // Update game state with new character
+        const char = {
+            name: document.getElementById('charNameInput').value || 'Ra\'el',
+            gender: document.getElementById('charGenderInput').value,
+            portrait: document.getElementById('charPortraitPreview').dataset.url,
+            background: document.getElementById('charBackgroundInput').value,
+            class: classVal,
+            abilities: Object.fromEntries(window.abilityNames.map((n,i)=>[n, abilityScores[i] || 10])),
+            level: 1,
+            health: '20/20',
+            xp: 0,
+            gold: equip.gold,
+            inventory: [],
+            wearing: equip.wearing,
+            wielding: equip.wielding,
+            armor_class: 10,
+            quest: 'None'
+        };
+        if (window.game && window.game.gameState) {
+            window.game.gameState.character = char;
+            window.game.gameState.gameStarted = true; // Mark game as started
+            window.game.updatePlayerInfo();
+            updateCharacterSummary();
+            
+            // Start the game automatically
+            window.game.startGame();
+        }
+        document.getElementById('charCreateModal').style.display = 'none';
+    };
+
+    // Patch modal open logic to update ability names
+    const oldShowCharCreateModal = window.showCharCreateModal;
+    window.showCharCreateModal = function() {
         updateCharModalOptions();
+        updateAbilityNamesInModal();
         randomPortraitForScenario();
         document.getElementById('charCreateModal').style.display = 'flex';
-    }
+    };
 
-    // Patch randomize all logic
-    const oldRandomCharBtn = document.getElementById('randomCharBtn').onclick;
+    // Patch randomize all logic to update ability names
+    const oldRandomCharBtn2 = document.getElementById('randomCharBtn').onclick;
     document.getElementById('randomCharBtn').onclick = () => {
         document.getElementById('charNameInput').value = randomFantasyName();
         document.getElementById('charGenderInput').selectedIndex = Math.floor(Math.random()*3);
         updateCharModalOptions();
+        updateAbilityNamesInModal();
         document.getElementById('charBackgroundInput').selectedIndex = Math.floor(Math.random()*document.getElementById('charBackgroundInput').options.length);
         document.getElementById('charClassInput').selectedIndex = Math.floor(Math.random()*document.getElementById('charClassInput').options.length);
         randomPortraitForScenario();
         rollAbilities();
     };
 
-    // Handle character creation submit
-    document.getElementById('charCreateForm').onsubmit = (e) => {
-        e.preventDefault();
-        // Update game state with new character
-        const char = {
-            name: document.getElementById('charNameInput').value || 'Ra\'el',
-            gender: document.getElementById('charGenderInput').value,
-            portrait: portraitPreview.dataset.url,
-            background: document.getElementById('charBackgroundInput').value,
-            class: document.getElementById('charClassInput').value,
-            abilities: {
-                Strength: abilityScores[0],
-                Dexterity: abilityScores[1],
-                Intelligence: abilityScores[2],
-                Persuasion: abilityScores[3],
-                Luck: abilityScores[4]
-            },
-            level: 1,
-            health: '20/20',
-            xp: 0,
-            gold: 50,
-            inventory: [],
-            wearing: [],
-            wielding: [],
-            armor_class: 10,
-            quest: 'None'
+    // Scenario-specific command buttons per turn
+    document.addEventListener('DOMContentLoaded', () => {
+        function updateScenarioCommands() {
+            const scenario = getScenarioKeySafe();
+            const commands = scenarioCommands[scenario] || scenarioCommands['northern_realms'];
+            const choicesList = document.getElementById('choicesList');
+            if (!choicesList) return;
+            choicesList.innerHTML = '';
+            commands.forEach(cmd => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerHTML = `<span class='cmd-icon'>${cmd.icon}</span> <span class='cmd-label'>${cmd.label}</span>`;
+                btn.title = cmd.tip;
+                choicesList.appendChild(btn);
+            });
+        }
+        // Call on each turn or when scenario changes
+        window.updateScenarioCommands = updateScenarioCommands;
+        // Optionally, call after game start or scenario select
+    });
+
+    // Scenario-specific atmospheric narration/effects
+    function updateScenarioAtmosphere() {
+        const scenario = getScenarioKeySafe();
+        const heroDesc = {
+            'northern_realms': 'A land of ancient dragons, mystical ley lines, and epic battles. Magic and steel shape the fate of kingdoms.',
+            'whispering_town': 'Foggy streets, gas lamps, and cosmic secrets. Sanity is fragile, and reality is thin.',
+            'neo_tokyo': 'Neon lights, acid rain, and digital souls. In the chrome-plated undercity, information is power.'
         };
-        if (window.game && window.game.gameState) {
-            window.game.gameState.character = char;
-            window.game.updatePlayerInfo();
-            updateCharacterSummary();
-        }
-        modal.style.display = 'none';
-    };
-
-    // Character summary always visible
-    function updateCharacterSummary() {
-        const panel = document.querySelector('.player-panel');
-        let summary = document.getElementById('characterSummary');
-        if (!summary) {
-            summary = document.createElement('div');
-            summary.id = 'characterSummary';
-            summary.className = 'character-summary';
-            panel.prepend(summary);
-        }
-        const char = game.gameState.character;
-        if (char) {
-            summary.innerHTML = `
-                <div class="char-summary-portrait" style="background-image:url('${char.portrait}')"></div>
-                <div class="char-summary-info">
-                    <div class="char-summary-name">${char.name}</div>
-                    <div class="char-summary-meta">${char.class} | ${char.background}</div>
-                </div>
-            `;
+        const el = document.querySelector('.hero-description');
+        if (el) el.textContent = heroDesc[scenario] || heroDesc['northern_realms'];
+        // Add scenario-specific background effect (class)
+        const bg = document.querySelector('.hero-background');
+        if (bg) {
+            bg.className = 'hero-background ' + scenario;
         }
     }
-    // Also call on load if character exists
-    if (game.gameState.character && game.gameState.character.name) {
-        updateCharacterSummary();
-    }
-
-    // Settings panel integration
-    window.showSettingsPanel = function() {
-        if (!window.gameSettings) {
-            window.gameSettings = new GameSettings();
-        }
-        window.gameSettings.openSettingsPanel();
-    };
-    // Save/Load modal implementation
-    function showSaveLoadModal() {
-        let modal = document.getElementById('saveLoadModal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'saveLoadModal';
-            modal.className = 'modal-overlay';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <h2>Save / Load Game</h2>
-                    <div style="margin-bottom:1rem;">
-                        <button id="saveGameBtnModal" class="btn-primary">💾 Save Game</button>
-                        <button id="loadGameBtnModal" class="btn-secondary">📂 Load Game</button>
-                    </div>
-                    <div id="saveLoadStatus" style="min-height:2em;"></div>
-                    <button class="modal-cancel" id="closeSaveLoadModal">Close</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            document.getElementById('closeSaveLoadModal').onclick = () => modal.style.display = 'none';
-            document.getElementById('saveGameBtnModal').onclick = () => {
-                try {
-                    localStorage.setItem('aiRpgGameState', JSON.stringify(window.game.gameState));
-                    document.getElementById('saveLoadStatus').textContent = 'Game saved!';
-                } catch (e) {
-                    document.getElementById('saveLoadStatus').textContent = 'Save failed!';
-                }
-            };
-            document.getElementById('loadGameBtnModal').onclick = () => {
-                try {
-                    const data = localStorage.getItem('aiRpgGameState');
-                    if (data) {
-                        window.game.gameState = JSON.parse(data);
-                        window.game.updatePlayerInfo();
-                        if (window.game.gameState.character) updateCharacterSummary();
-                        document.getElementById('saveLoadStatus').textContent = 'Game loaded!';
-                    } else {
-                        document.getElementById('saveLoadStatus').textContent = 'No saved game found.';
-                    }
-                } catch (e) {
-                    document.getElementById('saveLoadStatus').textContent = 'Load failed!';
-                }
-            };
-        }
-        modal.style.display = 'flex';
-    }
-    // Help modal stub
-    window.showHelpModal = function() {
-        alert('Help coming soon!');
-    };
+    document.addEventListener('DOMContentLoaded', updateScenarioAtmosphere);
 });
 
 function randomFantasyName() {
@@ -1458,97 +1827,61 @@ function updateAbilityNamesInModal() {
     if (typeof renderAbilityRolls === 'function') renderAbilityRolls();
 }
 
-// Patch character creation submit for starting equipment
-const oldCharCreateFormSubmit = document.getElementById('charCreateForm').onsubmit;
-document.getElementById('charCreateForm').onsubmit = (e) => {
-    e.preventDefault();
-    const scenario = getScenarioKeySafe();
-    const classVal = document.getElementById('charClassInput').value;
-    const equip = (scenarioStartingEquipment[scenario][classVal] || {wearing:[], wielding:[], gold:20});
-    // Update game state with new character
-    const char = {
-        name: document.getElementById('charNameInput').value || 'Ra\'el',
-        gender: document.getElementById('charGenderInput').value,
-        portrait: document.getElementById('charPortraitPreview').dataset.url,
-        background: document.getElementById('charBackgroundInput').value,
-        class: classVal,
-        abilities: Object.fromEntries(window.abilityNames.map((n,i)=>[n, abilityScores[i] || 10])),
-        level: 1,
-        health: '20/20',
-        xp: 0,
-        gold: equip.gold,
-        inventory: [],
-        wearing: equip.wearing,
-        wielding: equip.wielding,
-        armor_class: 10,
-        quest: 'None'
-    };
-    if (window.game && window.game.gameState) {
-        window.game.gameState.character = char;
-        window.game.updatePlayerInfo();
-        updateCharacterSummary();
+// Settings panel integration
+window.showSettingsPanel = function() {
+    if (!window.gameSettings) {
+        window.gameSettings = new GameSettings();
     }
-    document.getElementById('charCreateModal').style.display = 'none';
+    window.gameSettings.openSettingsPanel();
 };
-
-// Patch modal open logic to update ability names
-const oldShowCharCreateModal = window.showCharCreateModal;
-window.showCharCreateModal = function() {
-    updateCharModalOptions();
-    updateAbilityNamesInModal();
-    randomPortraitForScenario();
-    document.getElementById('charCreateModal').style.display = 'flex';
-};
-
-// Patch randomize all logic to update ability names
-const oldRandomCharBtn2 = document.getElementById('randomCharBtn').onclick;
-document.getElementById('randomCharBtn').onclick = () => {
-    document.getElementById('charNameInput').value = randomFantasyName();
-    document.getElementById('charGenderInput').selectedIndex = Math.floor(Math.random()*3);
-    updateCharModalOptions();
-    updateAbilityNamesInModal();
-    document.getElementById('charBackgroundInput').selectedIndex = Math.floor(Math.random()*document.getElementById('charBackgroundInput').options.length);
-    document.getElementById('charClassInput').selectedIndex = Math.floor(Math.random()*document.getElementById('charClassInput').options.length);
-    randomPortraitForScenario();
-    rollAbilities();
-};
-
-// Scenario-specific command buttons per turn
-document.addEventListener('DOMContentLoaded', () => {
-    function updateScenarioCommands() {
-        const scenario = getScenarioKeySafe();
-        const commands = scenarioCommands[scenario] || scenarioCommands['northern_realms'];
-        const choicesList = document.getElementById('choicesList');
-        if (!choicesList) return;
-        choicesList.innerHTML = '';
-        commands.forEach(cmd => {
-            const btn = document.createElement('button');
-            btn.className = 'choice-btn';
-            btn.innerHTML = `<span class='cmd-icon'>${cmd.icon}</span> <span class='cmd-label'>${cmd.label}</span>`;
-            btn.title = cmd.tip;
-            choicesList.appendChild(btn);
-        });
+// Save/Load modal implementation
+function showSaveLoadModal() {
+    let modal = document.getElementById('saveLoadModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'saveLoadModal';
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h2>Save / Load Game</h2>
+                <div style="margin-bottom:1rem;">
+                    <button id="saveGameBtnModal" class="btn-primary">💾 Save Game</button>
+                    <button id="loadGameBtnModal" class="btn-secondary">📂 Load Game</button>
+                </div>
+                <div id="saveLoadStatus" style="min-height:2em;"></div>
+                <button class="modal-cancel" id="closeSaveLoadModal">Close</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        document.getElementById('closeSaveLoadModal').onclick = () => modal.style.display = 'none';
+        document.getElementById('saveGameBtnModal').onclick = () => {
+            try {
+                localStorage.setItem('aiRpgGameState', JSON.stringify(window.game.gameState));
+                document.getElementById('saveLoadStatus').textContent = 'Game saved!';
+            } catch (e) {
+                document.getElementById('saveLoadStatus').textContent = 'Save failed!';
+            }
+        };
+        document.getElementById('loadGameBtnModal').onclick = () => {
+            try {
+                const data = localStorage.getItem('aiRpgGameState');
+                if (data) {
+                    window.game.gameState = JSON.parse(data);
+                    window.game.updatePlayerInfo();
+                    if (window.game.gameState.character) updateCharacterSummary();
+                    document.getElementById('saveLoadStatus').textContent = 'Game loaded!';
+                } else {
+                    document.getElementById('saveLoadStatus').textContent = 'No saved game found.';
+                }
+            } catch (e) {
+                document.getElementById('saveLoadStatus').textContent = 'Load failed!';
+            }
+        };
     }
-    // Call on each turn or when scenario changes
-    window.updateScenarioCommands = updateScenarioCommands;
-    // Optionally, call after game start or scenario select
-});
-
-// Scenario-specific atmospheric narration/effects
-function updateScenarioAtmosphere() {
-    const scenario = getScenarioKeySafe();
-    const heroDesc = {
-        'northern_realms': 'A land of ancient dragons, mystical ley lines, and epic battles. Magic and steel shape the fate of kingdoms.',
-        'whispering_town': 'Foggy streets, gas lamps, and cosmic secrets. Sanity is fragile, and reality is thin.',
-        'neo_tokyo': 'Neon lights, acid rain, and digital souls. In the chrome-plated undercity, information is power.'
-    };
-    const el = document.querySelector('.hero-description');
-    if (el) el.textContent = heroDesc[scenario] || heroDesc['northern_realms'];
-    // Add scenario-specific background effect (class)
-    const bg = document.querySelector('.hero-background');
-    if (bg) {
-        bg.className = 'hero-background ' + scenario;
-    }
+    modal.style.display = 'flex';
 }
-document.addEventListener('DOMContentLoaded', updateScenarioAtmosphere);
+// Help modal stub
+window.showHelpModal = function() {
+    alert('Help coming soon!');
+};
 
