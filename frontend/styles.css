@@ -618,41 +618,26 @@ p {
 }
 
 .choice-btn {
-    padding: var(--space-xl);
-    background: var(--bg-glass-light);
-    border: var(--glass-border);
-    border-radius: var(--radius-lg);
-    color: var(--text-primary);
-    font-size: 1.125rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.7em 1.3em;
+    border-radius: 1.2em;
+    background: var(--bg-glass-light, #23232b);
+    color: var(--text-primary, #fff);
+    border: none;
+    font-weight: 600;
+    font-size: 1.1em;
+    margin-bottom: 0.5em;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
     cursor: pointer;
-    transition: all var(--duration-normal) var(--ease-spring);
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    line-height: 1.6;
-}
-
-.choice-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--gradient-aurora);
-    opacity: 0;
-    transition: opacity var(--duration-normal) var(--ease-out-expo);
+    transition: background 0.2s, box-shadow 0.2s;
 }
 
 .choice-btn:hover {
-    transform: translateY(-6px) scale(1.02);
-    box-shadow: var(--shadow-elevation-4);
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
-.choice-btn:hover::before {
-    opacity: 0.15;
+    background: var(--color-accent, #ff9800);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(255,152,0,0.12);
 }
 
 /* Premium Input System */
@@ -1928,5 +1913,44 @@ p {
     #saveLoadModal h2 {
         font-size: 1.1rem;
     }
+}
+
+.cmd-icon {
+    font-size: 1.3em;
+    margin-right: 0.3em;
+    vertical-align: middle;
+}
+.cmd-label {
+    font-size: 1.05em;
+    vertical-align: middle;
+}
+
+/* Scenario-specific hero backgrounds */
+.hero-background.northern_realms {
+    background: linear-gradient(120deg, #2e2e4d 0%, #4e5d94 100%), url('../assets/ChatGPT Image 15 Haz 2025 19_19_27.png') center/cover no-repeat;
+    filter: brightness(0.7) saturate(1.1);
+    animation: fantasyAurora 12s ease-in-out infinite alternate;
+}
+.hero-background.whispering_town {
+    background: linear-gradient(120deg, #222 0%, #4e3c5c 100%), url('../assets/ChatGPT Image 15 Haz 2025 19_21_22.png') center/cover no-repeat;
+    filter: brightness(0.6) grayscale(0.2) blur(0.5px);
+    animation: horrorMist 10s ease-in-out infinite alternate;
+}
+.hero-background.neo_tokyo {
+    background: linear-gradient(120deg, #0ff 0%, #222 100%), url('../assets/ChatGPT Image 15 Haz 2025 19_23_42.png') center/cover no-repeat;
+    filter: brightness(0.8) contrast(1.2) saturate(1.3);
+    animation: cyberGrid 8s linear infinite alternate;
+}
+@keyframes fantasyAurora {
+    0% { filter: brightness(0.7) hue-rotate(0deg); }
+    100% { filter: brightness(0.8) hue-rotate(30deg); }
+}
+@keyframes horrorMist {
+    0% { filter: brightness(0.6) blur(0.5px); }
+    100% { filter: brightness(0.7) blur(1.5px); }
+}
+@keyframes cyberGrid {
+    0% { filter: brightness(0.8) contrast(1.2) saturate(1.3) hue-rotate(0deg); }
+    100% { filter: brightness(0.9) contrast(1.3) saturate(1.5) hue-rotate(30deg); }
 }
 

@@ -1375,3 +1375,180 @@ window.addEventListener('beforeunload', () => {
     }
 });
 
+// Scenario-specific ability names
+const scenarioAbilityNames = {
+    'northern_realms': ['Strength', 'Dexterity', 'Intelligence', 'Wisdom', 'Charisma'],
+    'whispering_town': ['Willpower', 'Observation', 'Knowledge', 'Sanity', 'Persuasion'],
+    'neo_tokyo': ['Reflexes', 'Tech', 'Cool', 'Hacking', 'Streetwise']
+};
+
+// Scenario-specific starting equipment
+const scenarioStartingEquipment = {
+    'northern_realms': {
+        'warrior': {wearing: ['Chainmail'], wielding: ['Longsword'], gold: 30},
+        'mage': {wearing: ['Robes'], wielding: ['Staff'], gold: 20},
+        'rogue': {wearing: ['Leather Armor'], wielding: ['Dagger'], gold: 25},
+        'cleric': {wearing: ['Priest Vestments'], wielding: ['Mace'], gold: 22},
+        'paladin': {wearing: ['Plate Armor'], wielding: ['Warhammer'], gold: 18},
+        'ranger': {wearing: ['Leather Armor'], wielding: ['Bow'], gold: 24}
+    },
+    'whispering_town': {
+        'occultist': {wearing: ['Tattered Coat'], wielding: ['Occult Tome'], gold: 10},
+        'detective': {wearing: ['Trenchcoat'], wielding: ['Revolver'], gold: 15},
+        'doctor': {wearing: ['Lab Coat'], wielding: ['Scalpel'], gold: 18},
+        'artist': {wearing: ['Bohemian Clothes'], wielding: ['Paintbrush'], gold: 12},
+        'outsider': {wearing: ['Old Jacket'], wielding: ['Strange Relic'], gold: 8},
+        'priest': {wearing: ['Clerical Robes'], wielding: ['Holy Symbol'], gold: 14}
+    },
+    'neo_tokyo': {
+        'netrunner': {wearing: ['Synthweave Suit'], wielding: ['Cyberdeck'], gold: 50},
+        'street_samurai': {wearing: ['Combat Jacket'], wielding: ['Katana'], gold: 40},
+        'techie': {wearing: ['Utility Vest'], wielding: ['Tool Kit'], gold: 35},
+        'fixer': {wearing: ['Urban Outfit'], wielding: ['Pistol'], gold: 38},
+        'corporate': {wearing: ['Business Suit'], wielding: ['Derringer'], gold: 60},
+        'hacker': {wearing: ['Hoodie'], wielding: ['Hacking Rig'], gold: 45}
+    }
+};
+
+// Scenario-specific command options
+const scenarioCommands = {
+    'northern_realms': [
+        {icon: '⚔️', label: 'Attack', tip: 'Strike with your weapon'},
+        {icon: '🛡️', label: 'Defend', tip: 'Brace for incoming attacks'},
+        {icon: '🧙', label: 'Cast Spell', tip: 'Use a magical ability'},
+        {icon: '🏃', label: 'Flee', tip: 'Attempt to escape'},
+        {icon: '🎲', label: 'Skill Check', tip: 'Attempt a special action'},
+        {icon: '💬', label: 'Talk', tip: 'Negotiate or persuade'},
+        {icon: '🎒', label: 'Inventory', tip: 'Use an item'}
+    ],
+    'whispering_town': [
+        {icon: '🔍', label: 'Investigate', tip: 'Search for clues'},
+        {icon: '🧠', label: 'Sanity Check', tip: 'Test your mental fortitude'},
+        {icon: '🔫', label: 'Shoot', tip: 'Use your firearm'},
+        {icon: '👁️', label: 'Observe', tip: 'Look for hidden details'},
+        {icon: '📖', label: 'Read Tome', tip: 'Consult forbidden knowledge'},
+        {icon: '🏃', label: 'Run', tip: 'Escape danger'},
+        {icon: '💬', label: 'Talk', tip: 'Question or plead'}
+    ],
+    'neo_tokyo': [
+        {icon: '💻', label: 'Hack', tip: 'Access digital systems'},
+        {icon: '🤖', label: 'Deploy Drone', tip: 'Use a tech gadget'},
+        {icon: '⚔️', label: 'Attack', tip: 'Strike with your weapon'},
+        {icon: '🛡️', label: 'Defend', tip: 'Brace for attacks'},
+        {icon: '🏃', label: 'Evade', tip: 'Dodge or escape'},
+        {icon: '💬', label: 'Negotiate', tip: 'Persuade or bribe'},
+        {icon: '🎒', label: 'Inventory', tip: 'Use an item'}
+    ]
+};
+
+function getScenarioKeySafe() {
+    const k = getCurrentScenarioKey ? getCurrentScenarioKey() : (window.game && window.game.gameState && window.game.gameState.selectedScenario) || 'northern_realms';
+    return scenarioAbilityNames[k] ? k : 'northern_realms';
+}
+
+// Patch ability names in modal and game
+function updateAbilityNamesInModal() {
+    const scenario = getScenarioKeySafe();
+    const names = scenarioAbilityNames[scenario];
+    const abilityRollsDiv = document.getElementById('abilityRolls');
+    if (!abilityRollsDiv) return;
+    // Update abilityNames array for rolling
+    window.abilityNames = names;
+    // Re-render ability rolls
+    if (typeof renderAbilityRolls === 'function') renderAbilityRolls();
+}
+
+// Patch character creation submit for starting equipment
+const oldCharCreateFormSubmit = document.getElementById('charCreateForm').onsubmit;
+document.getElementById('charCreateForm').onsubmit = (e) => {
+    e.preventDefault();
+    const scenario = getScenarioKeySafe();
+    const classVal = document.getElementById('charClassInput').value;
+    const equip = (scenarioStartingEquipment[scenario][classVal] || {wearing:[], wielding:[], gold:20});
+    // Update game state with new character
+    const char = {
+        name: document.getElementById('charNameInput').value || 'Ra\'el',
+        gender: document.getElementById('charGenderInput').value,
+        portrait: document.getElementById('charPortraitPreview').dataset.url,
+        background: document.getElementById('charBackgroundInput').value,
+        class: classVal,
+        abilities: Object.fromEntries(window.abilityNames.map((n,i)=>[n, abilityScores[i] || 10])),
+        level: 1,
+        health: '20/20',
+        xp: 0,
+        gold: equip.gold,
+        inventory: [],
+        wearing: equip.wearing,
+        wielding: equip.wielding,
+        armor_class: 10,
+        quest: 'None'
+    };
+    if (window.game && window.game.gameState) {
+        window.game.gameState.character = char;
+        window.game.updatePlayerInfo();
+        updateCharacterSummary();
+    }
+    document.getElementById('charCreateModal').style.display = 'none';
+};
+
+// Patch modal open logic to update ability names
+const oldShowCharCreateModal = window.showCharCreateModal;
+window.showCharCreateModal = function() {
+    updateCharModalOptions();
+    updateAbilityNamesInModal();
+    randomPortraitForScenario();
+    document.getElementById('charCreateModal').style.display = 'flex';
+};
+
+// Patch randomize all logic to update ability names
+const oldRandomCharBtn2 = document.getElementById('randomCharBtn').onclick;
+document.getElementById('randomCharBtn').onclick = () => {
+    document.getElementById('charNameInput').value = randomFantasyName();
+    document.getElementById('charGenderInput').selectedIndex = Math.floor(Math.random()*3);
+    updateCharModalOptions();
+    updateAbilityNamesInModal();
+    document.getElementById('charBackgroundInput').selectedIndex = Math.floor(Math.random()*document.getElementById('charBackgroundInput').options.length);
+    document.getElementById('charClassInput').selectedIndex = Math.floor(Math.random()*document.getElementById('charClassInput').options.length);
+    randomPortraitForScenario();
+    rollAbilities();
+};
+
+// Scenario-specific command buttons per turn
+document.addEventListener('DOMContentLoaded', () => {
+    function updateScenarioCommands() {
+        const scenario = getScenarioKeySafe();
+        const commands = scenarioCommands[scenario] || scenarioCommands['northern_realms'];
+        const choicesList = document.getElementById('choicesList');
+        if (!choicesList) return;
+        choicesList.innerHTML = '';
+        commands.forEach(cmd => {
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn';
+            btn.innerHTML = `<span class='cmd-icon'>${cmd.icon}</span> <span class='cmd-label'>${cmd.label}</span>`;
+            btn.title = cmd.tip;
+            choicesList.appendChild(btn);
+        });
+    }
+    // Call on each turn or when scenario changes
+    window.updateScenarioCommands = updateScenarioCommands;
+    // Optionally, call after game start or scenario select
+});
+
+// Scenario-specific atmospheric narration/effects
+function updateScenarioAtmosphere() {
+    const scenario = getScenarioKeySafe();
+    const heroDesc = {
+        'northern_realms': 'A land of ancient dragons, mystical ley lines, and epic battles. Magic and steel shape the fate of kingdoms.',
+        'whispering_town': 'Foggy streets, gas lamps, and cosmic secrets. Sanity is fragile, and reality is thin.',
+        'neo_tokyo': 'Neon lights, acid rain, and digital souls. In the chrome-plated undercity, information is power.'
+    };
+    const el = document.querySelector('.hero-description');
+    if (el) el.textContent = heroDesc[scenario] || heroDesc['northern_realms'];
+    // Add scenario-specific background effect (class)
+    const bg = document.querySelector('.hero-background');
+    if (bg) {
+        bg.className = 'hero-background ' + scenario;
+    }
+}
+document.addEventListener('DOMContentLoaded', updateScenarioAtmosphere);
+
