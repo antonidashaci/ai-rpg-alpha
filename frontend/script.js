@@ -1144,20 +1144,90 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('rollAbilitiesBtn').onclick = rollAbilities;
     renderAbilityRolls();
 
-    // Randomize all
+    // Scenario-specific character options
+    const scenarioCharacterOptions = {
+        'northern_realms': {
+            classes: ['Warrior', 'Mage', 'Rogue', 'Cleric', 'Paladin', 'Ranger'],
+            backgrounds: ['Hermit', 'Noble', 'Outlander', 'Acolyte', 'Soldier', 'Merchant'],
+            portraits: [
+                'https://api.dicebear.com/7.x/fantasy/svg?seed=' + Math.random(),
+                'https://api.dicebear.com/7.x/adventurer/svg?seed=' + Math.random(),
+                'https://api.dicebear.com/7.x/micah/svg?seed=' + Math.random(),
+                'https://api.dicebear.com/7.x/fantasy/svg?seed=' + Math.random(),
+                'https://api.dicebear.com/7.x/adventurer/svg?seed=' + Math.random()
+            ]
+        },
+        'whispering_town': {
+            classes: ['Occultist', 'Detective', 'Doctor', 'Artist', 'Outsider', 'Priest'],
+            backgrounds: ['Investigator', 'Scholar', 'Runaway', 'Medium', 'Journalist', 'Librarian'],
+            portraits: [
+                'https://api.dicebear.com/7.x/micah/svg?seed=' + Math.random(),
+                'https://api.dicebear.com/7.x/bottts/svg?seed=' + Math.random(),
+                'https://api.dicebear.com/7.x/fantasy/svg?seed=' + Math.random(),
+                'https://api.dicebear.com/7.x/adventurer/svg?seed=' + Math.random(),
+                'https://api.dicebear.com/7.x/micah/svg?seed=' + Math.random()
+            ]
+        },
+        'neo_tokyo': {
+            classes: ['Netrunner', 'Street Samurai', 'Techie', 'Fixer', 'Corporate', 'Hacker'],
+            backgrounds: ['Street Kid', 'Ex-Corp', 'Nomad', 'AI Cultist', 'Mercenary', 'Data Broker'],
+            portraits: [
+                'https://api.dicebear.com/7.x/bottts/svg?seed=' + Math.random(),
+                'https://api.dicebear.com/7.x/pixel-art/svg?seed=' + Math.random(),
+                'https://api.dicebear.com/7.x/micah/svg?seed=' + Math.random(),
+                'https://api.dicebear.com/7.x/bottts/svg?seed=' + Math.random(),
+                'https://api.dicebear.com/7.x/pixel-art/svg?seed=' + Math.random()
+            ]
+        }
+    };
+
+    function getCurrentScenarioKey() {
+        if (window.game && window.game.gameState && window.game.gameState.selectedScenario) {
+            return window.game.gameState.selectedScenario;
+        }
+        // fallback: try sessionStorage
+        return sessionStorage.getItem('currentScenario') || 'northern_realms';
+    }
+
+    function updateCharModalOptions() {
+        const scenario = getCurrentScenarioKey();
+        const opts = scenarioCharacterOptions[scenario] || scenarioCharacterOptions['northern_realms'];
+        // Update class options
+        const classSelect = document.getElementById('charClassInput');
+        classSelect.innerHTML = opts.classes.map(c => `<option value="${c.toLowerCase().replace(/ /g,'_')}">${c}</option>`).join('');
+        // Update background options
+        const bgSelect = document.getElementById('charBackgroundInput');
+        bgSelect.innerHTML = opts.backgrounds.map(b => `<option value="${b.toLowerCase().replace(/ /g,'_')}">${b}</option>`).join('');
+    }
+
+    function randomPortraitForScenario() {
+        const scenario = getCurrentScenarioKey();
+        const opts = scenarioCharacterOptions[scenario] || scenarioCharacterOptions['northern_realms'];
+        const portraits = opts.portraits;
+        const url = portraits[Math.floor(Math.random() * portraits.length)];
+        const portraitPreview = document.getElementById('charPortraitPreview');
+        portraitPreview.style.backgroundImage = `url('${url}')`;
+        portraitPreview.dataset.url = url;
+    }
+
+    // Patch modal open logic
+    function showCharCreateModal() {
+        updateCharModalOptions();
+        randomPortraitForScenario();
+        document.getElementById('charCreateModal').style.display = 'flex';
+    }
+
+    // Patch randomize all logic
+    const oldRandomCharBtn = document.getElementById('randomCharBtn').onclick;
     document.getElementById('randomCharBtn').onclick = () => {
         document.getElementById('charNameInput').value = randomFantasyName();
         document.getElementById('charGenderInput').selectedIndex = Math.floor(Math.random()*3);
-        document.getElementById('charBackgroundInput').selectedIndex = Math.floor(Math.random()*5);
-        document.getElementById('charClassInput').selectedIndex = Math.floor(Math.random()*5);
-        randomPortrait();
+        updateCharModalOptions();
+        document.getElementById('charBackgroundInput').selectedIndex = Math.floor(Math.random()*document.getElementById('charBackgroundInput').options.length);
+        document.getElementById('charClassInput').selectedIndex = Math.floor(Math.random()*document.getElementById('charClassInput').options.length);
+        randomPortraitForScenario();
         rollAbilities();
     };
-    function randomFantasyName() {
-        const first = ['Rael', 'Kael', 'Lira', 'Mira', 'Thar', 'Eryn', 'Jor', 'Sira', 'Vyn', 'Dara'];
-        const last = ['Shadow', 'Bright', 'Storm', 'Vale', 'Iron', 'Moon', 'Dusk', 'Frost', 'Ash', 'Dawn'];
-        return first[Math.floor(Math.random()*first.length)] + ' ' + last[Math.floor(Math.random()*last.length)];
-    }
 
     // Handle character creation submit
     document.getElementById('charCreateForm').onsubmit = (e) => {
@@ -1279,8 +1349,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 });
 
-function showCharCreateModal() {
-    document.getElementById('charCreateModal').style.display = 'flex';
+function randomFantasyName() {
+    const first = ['Rael', 'Kael', 'Lira', 'Mira', 'Thar', 'Eryn', 'Jor', 'Sira', 'Vyn', 'Dara'];
+    const last = ['Shadow', 'Bright', 'Storm', 'Vale', 'Iron', 'Moon', 'Dusk', 'Frost', 'Ash', 'Dawn'];
+    return first[Math.floor(Math.random()*first.length)] + ' ' + last[Math.floor(Math.random()*last.length)];
 }
 
 // Handle page visibility changes to pause/resume music
