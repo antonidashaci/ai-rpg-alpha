@@ -11,73 +11,233 @@
 </head>
 <body>
     <div class="scenario-container">
+        <!-- Hero Section with Background -->
+        <div class="hero-background"></div>
+        
         <header class="scenario-header">
-            <h1 class="game-title">AI-RPG-Alpha</h1>
-            <div class="game-subtitle">Choose Your Adventure</div>
+            <div class="hero-content">
+                <h1 class="game-title">AI-RPG-Alpha</h1>
+                <div class="game-subtitle">Embark on Epic AI-Driven Adventures</div>
+                <p class="hero-description">
+                    Where every choice shapes destiny. Where every word weaves reality. 
+                    Step into worlds limited only by imagination.
+                </p>
+            </div>
         </header>
 
         <main class="scenario-main">
+            <div class="scenarios-intro">
+                <h2>Choose Your Realm</h2>
+                <p>Each world offers unique stories, mechanics, and endless possibilities.</p>
+            </div>
+            
             <div class="scenario-grid">
                 <!-- The Northern Realms -->
                 <div class="scenario-card" data-scenario="northern_realms">
-                    <div class="scenario-image northern-realms-bg"></div>
+                    <div class="scenario-image-container">
+                        <img class="scenario-image northern-realms-bg" src="assets/ChatGPT Image 15 Haz 2025 19_19_27.png" alt="A fantasy mountain valley at sunrise, medieval village, pine forest, magical runes." />
+                        <div class="scenario-overlay"></div>
+                        <div class="scenario-character">
+                            <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop&crop=face" alt="Fantasy Knight" class="character-portrait">
+                        </div>
+                    </div>
                     <div class="scenario-content">
-                        <h2>The Northern Realms</h2>
-                        <div class="scenario-genre">Epic Fantasy</div>
+                        <div class="scenario-header">
+                            <h2>The Northern Realms</h2>
+                            <div class="scenario-genre">Epic Fantasy</div>
+                        </div>
                         <p class="scenario-description">
                             Ancient dragons stir in forgotten mountain peaks. Magic flows through mystical ley lines, and kingdoms rise and fall by the strength of heroes. Your choices will shape the fate of entire realms.
                         </p>
-                        <div class="scenario-features">
-                            <span class="feature-tag">⚔️ Epic Battles</span>
-                            <span class="feature-tag">🏰 Political Intrigue</span>
-                            <span class="feature-tag">🔮 Ancient Magic</span>
+                        <div class="scenario-stats">
+                            <div class="stat-pill">
+                                <span class="stat-icon">⚔️</span>
+                                <span>Epic Battles</span>
+                            </div>
+                            <div class="stat-pill">
+                                <span class="stat-icon">🏰</span>
+                                <span>Political Intrigue</span>
+                            </div>
+                            <div class="stat-pill">
+                                <span class="stat-icon">🔮</span>
+                                <span>Ancient Magic</span>
+                            </div>
                         </div>
-                        <button class="scenario-btn primary" data-scenario="northern_realms">Begin Epic Quest</button>
+                        <div class="scenario-meta">
+                            <div class="difficulty">
+                                <span class="meta-label">Difficulty:</span>
+                                <div class="difficulty-stars">
+                                    <span class="star filled">★</span>
+                                    <span class="star filled">★</span>
+                                    <span class="star filled">★</span>
+                                    <span class="star">★</span>
+                                    <span class="star">★</span>
+                                </div>
+                            </div>
+                            <div class="duration">
+                                <span class="meta-label">Duration:</span>
+                                <span class="meta-value">25-40 turns</span>
+                            </div>
+                        </div>
+                        <button class="scenario-btn btn-primary" data-scenario="northern_realms">
+                            <span class="btn-text">Begin Epic Quest</span>
+                            <span class="btn-icon">⚔️</span>
+                        </button>
                     </div>
                 </div>
 
                 <!-- The Whispering Town -->
                 <div class="scenario-card featured" data-scenario="whispering_town">
-                    <div class="scenario-image whispering-town-bg"></div>
+                    <div class="featured-badge">RECOMMENDED</div>
+                    <div class="scenario-image-container">
+                        <img class="scenario-image whispering-town-bg" src="assets/ChatGPT Image 15 Haz 2025 19_21_22.png" alt="Foggy, eerie New England town at night, gas lamps, Victorian houses, cosmic horror." />
+                        <div class="scenario-overlay horror-overlay"></div>
+                        <div class="scenario-character">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face" alt="Mysterious Figure" class="character-portrait">
+                        </div>
+                        <div class="floating-elements">
+                            <div class="mist"></div>
+                            <div class="whisper-text">Ph'nglui mglw'nafh...</div>
+                        </div>
+                    </div>
                     <div class="scenario-content">
-                        <h2>The Whispering Town</h2>
-                        <div class="scenario-genre">Cosmic Horror</div>
-                        <div class="featured-badge">RECOMMENDED</div>
+                        <div class="scenario-header">
+                            <h2>The Whispering Town</h2>
+                            <div class="scenario-genre horror">Cosmic Horror</div>
+                        </div>
                         <p class="scenario-description">
                             Reality grows thin in this forgotten New England town. Ancient whispers carry forbidden knowledge, and your sanity hangs by a thread. Some truths are too terrible to know.
                         </p>
-                        <div class="scenario-features">
-                            <span class="feature-tag">🧠 Sanity System</span>
-                            <span class="feature-tag">👁️ Cosmic Knowledge</span>
-                            <span class="feature-tag">🌊 Reality Distortion</span>
+                        <div class="scenario-stats">
+                            <div class="stat-pill horror">
+                                <span class="stat-icon">🧠</span>
+                                <span>Sanity System</span>
+                            </div>
+                            <div class="stat-pill horror">
+                                <span class="stat-icon">👁️</span>
+                                <span>Cosmic Knowledge</span>
+                            </div>
+                            <div class="stat-pill horror">
+                                <span class="stat-icon">🌊</span>
+                                <span>Reality Distortion</span>
+                            </div>
                         </div>
-                        <button class="scenario-btn primary horror" data-scenario="whispering_town">Enter the Unknown</button>
+                        <div class="scenario-meta">
+                            <div class="difficulty">
+                                <span class="meta-label">Difficulty:</span>
+                                <div class="difficulty-stars">
+                                    <span class="star filled">★</span>
+                                    <span class="star filled">★</span>
+                                    <span class="star filled">★</span>
+                                    <span class="star filled">★</span>
+                                    <span class="star filled">★</span>
+                                </div>
+                            </div>
+                            <div class="duration">
+                                <span class="meta-label">Duration:</span>
+                                <span class="meta-value">20-35 turns</span>
+                            </div>
+                        </div>
+                        <button class="scenario-btn btn-horror" data-scenario="whispering_town">
+                            <span class="btn-text">Enter the Unknown</span>
+                            <span class="btn-icon">👁️</span>
+                        </button>
                     </div>
                 </div>
 
                 <!-- Neo-Tokyo 2087 -->
                 <div class="scenario-card" data-scenario="neo_tokyo">
-                    <div class="scenario-image neo-tokyo-bg"></div>
+                    <div class="scenario-image-container">
+                        <img class="scenario-image neo-tokyo-bg" src="assets/ChatGPT Image 15 Haz 2025 19_23_42.png" alt="Futuristic cyberpunk city, neon lights, rain, crowds, holographic billboards." />
+                        <div class="scenario-overlay cyber-overlay"></div>
+                        <div class="scenario-character">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face" alt="Cyberpunk Hacker" class="character-portrait cyber">
+                        </div>
+                        <div class="floating-elements">
+                            <div class="neon-grid"></div>
+                            <div class="data-stream">01001000 01100101 01101100 01110000...</div>
+                        </div>
+                    </div>
                     <div class="scenario-content">
-                        <h2>Neo-Tokyo 2087</h2>
-                        <div class="scenario-genre">Cyberpunk Dystopia</div>
+                        <div class="scenario-header">
+                            <h2>Neo-Tokyo 2087</h2>
+                            <div class="scenario-genre cyber">Cyberpunk Dystopia</div>
+                        </div>
                         <p class="scenario-description">
                             Neon lights pierce through acid rain as corporate overlords control humanity's digital souls. In this chrome-plated nightmare, information is power, and power corrupts everything.
                         </p>
-                        <div class="scenario-features">
-                            <span class="feature-tag">🤖 Cybernetics</span>
-                            <span class="feature-tag">💾 Data Warfare</span>
-                            <span class="feature-tag">🏙️ Urban Decay</span>
+                        <div class="scenario-stats">
+                            <div class="stat-pill cyber">
+                                <span class="stat-icon">🤖</span>
+                                <span>Cybernetics</span>
+                            </div>
+                            <div class="stat-pill cyber">
+                                <span class="stat-icon">💾</span>
+                                <span>Data Warfare</span>
+                            </div>
+                            <div class="stat-pill cyber">
+                                <span class="stat-icon">🏙️</span>
+                                <span>Urban Decay</span>
+                            </div>
                         </div>
-                        <button class="scenario-btn primary cyber" data-scenario="neo_tokyo">Jack In</button>
+                        <div class="scenario-meta">
+                            <div class="difficulty">
+                                <span class="meta-label">Difficulty:</span>
+                                <div class="difficulty-stars">
+                                    <span class="star filled">★</span>
+                                    <span class="star filled">★</span>
+                                    <span class="star filled">★</span>
+                                    <span class="star filled">★</span>
+                                    <span class="star">★</span>
+                                </div>
+                            </div>
+                            <div class="duration">
+                                <span class="meta-label">Duration:</span>
+                                <span class="meta-value">30-45 turns</span>
+                            </div>
+                        </div>
+                        <button class="scenario-btn btn-cyber" data-scenario="neo_tokyo">
+                            <span class="btn-text">Jack In</span>
+                            <span class="btn-icon">💾</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="features-section">
+                <h2>Powered by Advanced AI</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🧠</div>
+                        <h3>Dynamic Storytelling</h3>
+                        <p>Every playthrough is unique with AI-generated narratives that adapt to your choices.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎭</div>
+                        <h3>Character Depth</h3>
+                        <p>NPCs with complex personalities and motivations that evolve throughout your journey.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌍</div>
+                        <h3>Living Worlds</h3>
+                        <p>Rich, detailed environments that react and change based on your actions and decisions.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Instant Immersion</h3>
+                        <p>No setup required. Just choose your path and dive into adventures that feel truly alive.</p>
                     </div>
                 </div>
             </div>
         </main>
 
         <footer class="scenario-footer">
-            <p>Each scenario offers unique mechanics, storylines, and progression systems.</p>
-            <p>Your choices will have lasting consequences across 30-40 turn epic adventures.</p>
+            <div class="footer-content">
+                <p>✨ <strong>Each scenario offers unique mechanics, storylines, and progression systems.</strong></p>
+                <p>🚀 <strong>Your choices will have lasting consequences across epic 20-45 turn adventures.</strong></p>
+                <p>🎮 <strong>Powered by state-of-the-art AI for truly dynamic storytelling.</strong></p>
+            </div>
         </footer>
     </div>
 
@@ -89,12 +249,36 @@
                 button.addEventListener('click', function() {
                     const scenario = this.getAttribute('data-scenario');
                     
+                    // Add click animation
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                    
                     // Store selected scenario
                     localStorage.setItem('selectedScenario', scenario);
                     
-                    // Redirect to main game
-                    window.location.href = 'index.html';
+                    // Redirect to main game after animation
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 300);
                 });
+            });
+
+            // Add parallax effect to background
+            window.addEventListener('scroll', function() {
+                const scrolled = window.pageYOffset;
+                const heroBackground = document.querySelector('.hero-background');
+                if (heroBackground) {
+                    heroBackground.style.transform = `translateY(${scrolled * 0.5}px)`;
+                }
+            });
+
+            // Add floating animation to mist and data streams
+            const floatingElements = document.querySelectorAll('.mist, .neon-grid');
+            floatingElements.forEach(element => {
+                const randomDelay = Math.random() * 3;
+                element.style.animationDelay = `${randomDelay}s`;
             });
         });
     </script>
