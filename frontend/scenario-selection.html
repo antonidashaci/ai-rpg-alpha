@@ -3,20 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Choose Your Adventure - AI-RPG-Alpha</title>
+    <title>AI-RPG-Alpha - Cinematic Scenario Select</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Russo+One&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="scenarioMenu" class="cinematic-menu">
         <div class="background-blur" id="scenarioBg"></div>
         <div class="cinematic-overlay"></div>
+        <canvas id="particlesBg"></canvas>
         <div class="menu-content">
             <div class="scenario-nav">
                 <button id="prevScenario" class="nav-arrow">&#8592;</button>
-                <div class="scenario-info">
+                <div class="scenario-info glass-card">
                     <div class="scenario-badge" id="scenarioBadge"></div>
                     <h1 class="scenario-title" id="scenarioTitle"></h1>
                     <div class="scenario-tagline" id="scenarioTagline"></div>
@@ -88,6 +90,40 @@
     }
     // İlk render
     renderScenario(current);
+
+    // Partikül/ışık animasyonu (basit cyberpunk dots)
+    const canvas = document.getElementById('particlesBg');
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    const particles = Array.from({length: 48}, () => ({
+        x: Math.random()*canvas.width,
+        y: Math.random()*canvas.height,
+        r: Math.random()*2.5+1.5,
+        dx: (Math.random()-0.5)*0.3,
+        dy: (Math.random()-0.5)*0.3,
+        c: `rgba(${Math.floor(Math.random()*80+170)},${Math.floor(Math.random()*80+170)},255,0.13)`
+    }));
+    function drawParticles() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for(const p of particles) {
+            ctx.beginPath();
+            ctx.arc(p.x,p.y,p.r,0,2*Math.PI);
+            ctx.fillStyle=p.c;
+            ctx.shadowColor=p.c;
+            ctx.shadowBlur=12;
+            ctx.fill();
+            p.x+=p.dx; p.y+=p.dy;
+            if(p.x<0||p.x>canvas.width) p.dx*=-1;
+            if(p.y<0||p.y>canvas.height) p.dy*=-1;
+        }
+        requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
     </script>
 </body>
 </html> 
