@@ -13,7 +13,7 @@ class GeminiClient:
     
     def __init__(self, api_key: str = None):
         """Initialize the Gemini client with API key"""
-        self.api_key = api_key or "AIzaSyD12wh7TQ21WBrnIIm6FgRjd5CgLk01ZFQ"
+        self.api_key = api_key or ""
         
         # Configure Gemini
         genai.configure(api_key=self.api_key)
