@@ -1,0 +1,21 @@
+:: Start
+<<set $bg to 0>>
+
+%scene_01.opening
+
+* [[scene_01.choice.touch|Touch Stone]]
+* [[scene_01.choice.study|Study Runes]]
+* [[scene_01.choice.withdraw|Withdraw]]
+
+:: Touch Stone
+<<if (testRoll("WIS",12))>>
+	You feel a surge of memories not your own. -> [[Vision|Touch Success]]
+<<else>>
+	A shriek of static claws your mind. -> [[Pain|Touch Fail]]
+<</if>>
+
+:: Touch Success
+''Placeholder for successful vision.''
+
+:: Touch Fail
+''Placeholder for backlash.'' 
