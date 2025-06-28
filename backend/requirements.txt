@@ -9,4 +9,6 @@ jinja2
 pytest
 flake8
 google-generativeai
+pyyaml
+rich
 
