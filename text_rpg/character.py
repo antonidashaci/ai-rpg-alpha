@@ -82,4 +82,22 @@ class Character:
             self.inventory.append(item_name)
 
     def has_item(self, item_name: str) -> bool:
-        return item_name in self.inventory 
+        return item_name in self.inventory
+
+    # ------------------------------------------------------------------
+    # Combat helpers (placeholder scaling)
+    # ------------------------------------------------------------------
+    def attack_bonus(self) -> int:
+        # Proficiency + STR mod simplistic
+        prof = 2 + (self.level - 1) // 4
+        return prof + self.ability_modifier("STR")
+
+    def roll_attack(self) -> int:
+        from . import dice  # local import to avoid circular
+
+        return dice.d20() + self.attack_bonus()
+
+    def roll_damage(self) -> int:
+        from . import dice
+
+        return dice.roll(8) + self.ability_modifier("STR")  # d8 weapon default 

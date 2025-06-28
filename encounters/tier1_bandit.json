@@ -1,0 +1,8 @@
+{
+  "name": "Highway Bandit",
+  "hp": 8,
+  "ac": 12,
+  "attack_bonus": 3,
+  "damage": "1d6+1",
+  "xp": 25
+} 

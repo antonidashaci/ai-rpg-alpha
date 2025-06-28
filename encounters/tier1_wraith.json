@@ -1,0 +1,8 @@
+{
+  "name": "Faded Wraith",
+  "hp": 6,
+  "ac": 11,
+  "attack_bonus": 2,
+  "damage": "1d4+2",
+  "xp": 30
+} 
