@@ -115,13 +115,33 @@ class RPGApp(App):
 
     def action_confirm(self):
         choice = self.choice_list.choices[self.choice_list.selected_index]
-        # Simple immediate transition (no checks yet)
-        next_node = choice.success_node or choice.fail_node
+
+        success = True
+        outcome_text = ""
+        if choice.ability and choice.dc:
+            roll_total = self.char.roll_ability_check(choice.ability)
+            dc_req = choice.dc  # TODO: include difficulty scaling
+            success = roll_total >= dc_req
+            outcome_text = (
+                f"\n\n> You roll **{roll_total}** vs DC {dc_req}: "
+                + ("**Success**" if success else "**Failure**")
+            )
+
+        next_node = None
+        if success and choice.success_node:
+            next_node = choice.success_node
+        elif not success and choice.fail_node:
+            next_node = choice.fail_node
+
         if next_node:
             self.current_scene_id = next_node
             self.load_scene()
+            if outcome_text:
+                # Prepend outcome to new scene narrative for context
+                self.narrative.text = outcome_text + "\n\n" + self.narrative.text
         else:
-            self.narrative.text += "\n\n**End of prototype path.**"
+            # No next node – end path
+            self.narrative.text += outcome_text + "\n\n**End of prototype path.**"
             self.choice_list.choices = []
 
 
