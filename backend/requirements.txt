@@ -11,4 +11,5 @@ flake8
 google-generativeai
 pyyaml
 rich
+textual>=0.45
 
