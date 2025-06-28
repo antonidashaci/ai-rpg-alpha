@@ -20,6 +20,7 @@ class Character:
     level: int = 1
     attributes: Dict[str, int] = field(default_factory=lambda: {a: 10 for a in ABILITIES})
     skills: Dict[str, bool] = field(default_factory=dict)  # skill name -> proficiency bool
+    inventory: List[str] = field(default_factory=list)
 
     # Alignment represented as two axes: law_chaos (-5..+5), good_evil (-5..+5)
     alignment_lc: int = 0  # -5 chaos, +5 law
@@ -70,4 +71,15 @@ class Character:
     def adjust_alignment(self, lc_delta: int = 0, ge_delta: int = 0) -> None:
         """Shift alignment values keeping them within -5..+5 range."""
         self.alignment_lc = max(-5, min(5, self.alignment_lc + lc_delta))
-        self.alignment_ge = max(-5, min(5, self.alignment_ge + ge_delta)) 
+        self.alignment_ge = max(-5, min(5, self.alignment_ge + ge_delta))
+
+    # ------------------------------------------------------------------
+    # Inventory helpers
+    # ------------------------------------------------------------------
+    def add_item(self, item_name: str) -> None:
+        """Add an item to the character's inventory if not already present."""
+        if item_name not in self.inventory:
+            self.inventory.append(item_name)
+
+    def has_item(self, item_name: str) -> bool:
+        return item_name in self.inventory 

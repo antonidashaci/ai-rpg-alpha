@@ -9,7 +9,6 @@ terminal experience (scrolling panes, color themes, keybindings).
 """
 from __future__ import annotations
 
-from pathlib import Path
 from typing import List
 
 # type: ignore
@@ -66,6 +65,7 @@ class RPGApp(App):
         ("up", "cursor_up", "Up"),
         ("down", "cursor_down", "Down"),
         ("enter", "confirm", "Select"),
+        ("i", "toggle_inventory", "Inventory"),
     ]
 
     def __init__(self):
@@ -82,8 +82,10 @@ class RPGApp(App):
         with Container():
             self.narrative = NarrativeView()
             self.choice_list = ChoiceList()
+            self.inventory_view = Static("", classes="inventory", id="inv", visible=False)
             yield self.narrative
             yield self.choice_list
+            yield self.inventory_view
         yield Footer()
 
     # -----------------------------
@@ -143,6 +145,15 @@ class RPGApp(App):
             # No next node – end path
             self.narrative.text += outcome_text + "\n\n**End of prototype path.**"
             self.choice_list.choices = []
+
+    # -----------------------------
+    # Inventory toggle
+    # -----------------------------
+    def action_toggle_inventory(self):
+        inv = "\n".join(f"- {itm}" for itm in self.char.inventory) or "(empty)"
+        self.inventory_view.update(f"[bold yellow]Inventory[/]\n{inv}")
+        self.inventory_view.visible = not self.inventory_view.visible
+        # When inventory is open, freeze choice selection UI by not changing above
 
 
 def run():  # pragma: no cover
