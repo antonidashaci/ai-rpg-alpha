@@ -28,6 +28,7 @@ from .political_system import PoliticalEngine, KingdomState
 from .side_quests import SideQuestLibrary
 from .additional_encounters import AdditionalEncounters
 from .skyrim_style_quests import SkyrimStyleQuestLibrary
+from .immersive_quest_system import ImmersiveQuestEngine, ImmersiveQuest, ImmersiveNarratives
 from .achievement_system import AchievementEngine, AchievementNotification
 from .audio_system import AudioSystem, AudioManager, MusicTrack, SoundEffect
 from ..dao.game_database import GameDatabase
@@ -55,6 +56,7 @@ class GameOrchestrator:
         self.achievement_engine = AchievementEngine()
         self.audio_system = AudioSystem()
         self.audio_manager = AudioManager(self.audio_system)
+        self.immersive_quest_engine = ImmersiveQuestEngine()
         self.llm_manager = LocalLLMManager()
 
         # Game state tracking for achievements
@@ -170,31 +172,44 @@ class GameOrchestrator:
             choice_index,
             additional_context={"player_data": player_data}
         )
-        
+
         # Update quest state in database
         self._update_quest_database(player_id, quest_result)
-        
+
+        # Process immersive quest system
+        immersive_result = self.immersive_quest_engine.process_immersive_turn(self._get_game_state_for_immersive())
+
         # Check if combat should trigger
         if quest_result.get('combat_trigger', False):
             combat_result = self._initiate_combat(player_data)
-            
+
             return {
                 **quest_result,
+                **immersive_result,
                 "combat_initiated": True,
                 "combat_narrative": combat_result['narrative'],
                 "combat_choices": combat_result['choices']
             }
-        
-        # Generate narrative for this turn
+
+        # Generate narrative for this turn (enhanced with immersive elements)
         narrative = self._generate_turn_narrative(
             player_data,
             player_action,
             quest_result,
             ai_client
         )
-        
-        # Get next choices
+
+        # Add immersive quest narratives if any
+        if immersive_result.get('natural_narratives'):
+            narrative += "\n\n" + "\n\n".join(immersive_result['natural_narratives'])
+
+        # Get next choices (enhanced with immersive suggestions)
         choices = self._generate_choices(quest_result, player_data)
+
+        # Add immersive quest suggestions
+        immersive_suggestions = self.immersive_quest_engine.get_quest_suggestions(self._get_game_state_for_immersive())
+        if immersive_suggestions:
+            choices.extend(immersive_suggestions)
         
         # Log game event
         self.db.log_game_event(
@@ -505,6 +520,19 @@ class GameOrchestrator:
 
         # Fallback narrative if LLM unavailable
         return f"You {player_action.lower()}. Your journey through the Northern Realms continues."
+
+    def _get_game_state_for_immersive(self) -> Dict[str, any]:
+        """Get game state formatted for immersive quest system"""
+        return {
+            'player_name': self.player_id,  # This should be the actual player name
+            'current_location': 'ironhold_village',  # This should come from actual game state
+            'visited_locations': ['ironhold_village', 'frostmere_academy'],
+            'known_npcs': ['grom_blacksmith', 'elara_mage', 'king_alaric'],
+            'npc_relationships': {'grom_blacksmith': 3, 'elara_mage': 2, 'king_alaric': 1},
+            'player_level': 3,
+            'player_stats': {'level': 3, 'health': 20, 'mana': 10},
+            'world_state': {'festival_active': False, 'dragon_threat': 'moderate'}
+        }
 
     def _get_skyrim_style_encounter(self, encounter_type: str) -> Tuple[List[Enemy], List[EnvironmentalFeature], str]:
         """Get Skyrim-style combat encounter"""

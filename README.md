@@ -51,7 +51,8 @@
 - **🐉 Dragon Prophecy:** 40-turn epic quest with ancient prophecies
 - **🏰 Kingdom Politics:** Three kingdoms (Ironhold, Stormwatch, Frostmere) with dynamic alliances
 - **🪄 Complete Magic:** 6 schools, 20+ spells, mana management, magical artifacts
-- **⚔️ Tactical Combat:** BG3-style encounters with environmental interactions
+- **⚔️ Tactical Combat:** 20+ encounters (dragons, undead, vampires, werewolves, etc.)
+- **📜 Skyrim-Style Quests:** 8 additional quests (guilds, artifacts, companions, festivals)
 - **👥 Living NPCs:** 5+ characters with branching dialogue and reputation systems
 - **🏛️ Political Intrigue:** Diplomatic choices affect entire realms
 - **📚 Rich Lore:** Deep world-building with history, factions, and consequences
