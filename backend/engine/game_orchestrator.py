@@ -25,6 +25,10 @@ from .combat_system import (
 from .magic_system import MagicEngine, MageStats, Spell
 from .npc_dialogue import DialogueEngine, NPCDefinition
 from .political_system import PoliticalEngine, KingdomState
+from .side_quests import SideQuestLibrary
+from .additional_encounters import AdditionalEncounters
+from .achievement_system import AchievementEngine, AchievementNotification
+from .audio_system import AudioSystem, AudioManager, MusicTrack, SoundEffect
 from ..dao.game_database import GameDatabase
 from ..ai.local_llm_client import LocalLLMManager
 
@@ -47,7 +51,21 @@ class GameOrchestrator:
         self.magic_engine = MagicEngine()
         self.dialogue_engine = DialogueEngine()
         self.political_engine = PoliticalEngine()
+        self.achievement_engine = AchievementEngine()
+        self.audio_system = AudioSystem()
+        self.audio_manager = AudioManager(self.audio_system)
         self.llm_manager = LocalLLMManager()
+
+        # Game state tracking for achievements
+        self.game_stats = {
+            "completed_quests": set(),
+            "combat_stats": {"victories": 0, "environmental_victories": 0, "dragons_defeated": 0},
+            "magic_stats": {"spells_cast": 0, "spells_known": 0, "destruction_affinity": 0},
+            "exploration_stats": {"locations_discovered": 0, "treasures_found": 0},
+            "player_stats": {"alliances_formed": 0, "friendly_npcs": 0, "total_gold_earned": 0},
+            "social_stats": {"conversations_completed": 0},
+            "economics_stats": {"total_gold_earned": 0}
+        }
         
         # Current game state
         self.player_id: Optional[str] = None
@@ -204,8 +222,21 @@ class GameOrchestrator:
     
     def _initiate_combat(self, player_data: Dict) -> Dict[str, Any]:
         """Initiate a combat encounter"""
-        # Select fantasy encounter
-        enemies, environment, context = CombatEncounterLibrary.bandit_ambush()
+        # Randomly select from available encounter types
+        encounter_types = [
+            "bandit", "dragon", "orc", "undead", "assassin", "troll", "giant",
+            "ancient_guardian", "mercenary_band", "magical_anomaly",
+            "frost_elemental", "shadow_assassins", "corrupted_beast", "storm_elemental"
+        ]
+
+        encounter_type = random.choice(encounter_types)
+
+        # Get encounter data
+        if encounter_type in AdditionalEncounters.get_all_additional_encounters():
+            enemies, environment, context = AdditionalEncounters.get_random_additional_encounter()
+        else:
+            # Use fantasy encounters library
+            enemies, environment, context = CombatEncounterLibrary.get_fantasy_encounter(encounter_type)
         
         # Create combat state
         encounter_id = f"combat_{random.randint(1000, 9999)}"
@@ -340,7 +371,18 @@ class GameOrchestrator:
         # Update quest progression (combat completed)
         if self.quest_engine.active_quest:
             self.quest_engine.active_quest.progression.combat_encounters_completed += 1
-        
+
+        # Update combat statistics for achievements
+        self.game_stats["combat_stats"]["victories"] += 1
+
+        # Check for environmental victory
+        if "environment" in final_narrative.lower() or "tactical" in final_narrative.lower():
+            self.game_stats["combat_stats"]["environmental_victories"] += 1
+
+        # Check for dragon defeat
+        if "dragon" in str(state.enemies).lower():
+            self.game_stats["combat_stats"]["dragons_defeated"] += 1
+
         # Handle defeat - failure as content
         if outcome == CombatOutcome.DEFEAT:
             self.db.update_player_stats(self.player_id, {'health': 1})  # Barely alive
@@ -381,6 +423,31 @@ class GameOrchestrator:
         
         if quest_result.get('quest_completed'):
             updates['completed_at'] = 'CURRENT_TIMESTAMP'
+
+            # Add quest to completed set for achievements
+            self.game_stats["completed_quests"].add(quest.quest_id)
+
+            # Play quest completion audio
+            self.audio_manager.on_quest_complete()
+
+            # Check for achievements
+            newly_unlocked = self.achievement_engine.check_achievements(self.game_stats)
+            if newly_unlocked:
+                for achievement in newly_unlocked:
+                    self.audio_manager.on_achievement_unlock()
+                    # Add achievement notification to response
+                    if "newly_unlocked_achievements" not in response:
+                        response["newly_unlocked_achievements"] = []
+                    response["newly_unlocked_achievements"].append({
+                        "name": achievement.name,
+                        "description": achievement.description,
+                        "rarity": achievement.rarity.value,
+                        "rewards": {
+                            "gold": achievement.gold_reward,
+                            "experience": achievement.experience_reward,
+                            "title": achievement.title_reward
+                        }
+                    })
         
         self.db.update_quest_state(player_id, quest.quest_id, updates)
     

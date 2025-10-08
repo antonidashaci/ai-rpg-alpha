@@ -60,18 +60,28 @@
 
 ## 🚀 Hızlı Başlangıç
 
-### Gereksinimler
-- Python 3.11+
-- pip (Python package manager)
-- **Ollama** (for local AI) - See setup instructions below
+### 🎮 Desktop Uygulaması (Recommended)
 
-### Kurulum
+**Standalone PC oyunu olarak oynamak için:**
 
 ```bash
 # Repository'yi klonlayın
 git clone https://github.com/antonidashaci/ai-rpg-alpha.git
 cd ai-rpg-alpha
 
+# Desktop bağımlılıklarını yükleyin
+pip install -r desktop_requirements.txt
+
+# Lokal LLM'i kurun (Ollama)
+python scripts/setup_local_llm.py
+
+# Desktop uygulamasını çalıştırın
+python run_desktop.py
+```
+
+### 🌐 Web Uygulaması (Alternative)
+
+```bash
 # Backend bağımlılıklarını yükleyin
 cd backend
 pip install -r requirements.txt
@@ -120,6 +130,37 @@ Backend şu adreste çalışacak: **http://localhost:8000**
 
 **Alternative Setup:**
 Run `python scripts/setup_local_llm.py` for automated setup and testing.
+
+### 💻 Desktop Uygulaması
+
+**Native PC Experience:**
+
+```bash
+# Desktop uygulamasını çalıştırın
+python run_desktop.py
+
+# Veya standalone executable oluşturun
+python build_desktop.py
+```
+
+**Desktop Features:**
+- **PyQt6 Native GUI** - Modern, responsive interface
+- **Tabbed Interface** - Game, Character, Magic, NPCs, Kingdoms
+- **Real-time Updates** - Live game state synchronization
+- **Save/Load System** - Multiple save slots
+- **Keyboard Shortcuts** - Efficient gameplay
+- **Cross-Platform** - Windows, macOS, Linux
+
+**Build Standalone Executable:**
+```bash
+# Tüm bağımlılıkları yükleyin
+pip install -r desktop_requirements.txt
+
+# Executable oluşturun
+python build_desktop.py
+
+# dist/ klasöründe çalıştırılabilir dosya bulunacak
+```
 
 ### Frontend
 
