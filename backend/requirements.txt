@@ -12,4 +12,6 @@ google-generativeai
 pyyaml
 rich
 textual>=0.45
+requests
+openai  # For compatibility (even though we're using local LLM)
 

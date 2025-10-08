@@ -26,6 +26,7 @@ from .magic_system import MagicEngine, MageStats, Spell
 from .npc_dialogue import DialogueEngine, NPCDefinition
 from .political_system import PoliticalEngine, KingdomState
 from ..dao.game_database import GameDatabase
+from ..ai.local_llm_client import LocalLLMManager
 
 
 class GameOrchestrator:
@@ -46,6 +47,7 @@ class GameOrchestrator:
         self.magic_engine = MagicEngine()
         self.dialogue_engine = DialogueEngine()
         self.political_engine = PoliticalEngine()
+        self.llm_manager = LocalLLMManager()
         
         # Current game state
         self.player_id: Optional[str] = None
@@ -387,21 +389,83 @@ class GameOrchestrator:
         player_data: Dict,
         player_action: str,
         quest_result: Dict,
-        ai_client: Optional[Any]
+        ai_client: Optional[Any] = None
     ) -> str:
-        """Generate narrative for turn"""
+        """Generate narrative for turn using local LLM"""
+
+        # If milestone reached, use milestone content
         if quest_result.get('milestone_reached'):
             milestone = quest_result.get('milestone', {})
             return f"**{milestone.get('title', 'Next Step')}**\n\n{milestone.get('description', '')}"
-        
+
+        # Use local LLM for dynamic narrative generation
+        if self.llm_manager.is_available():
+            try:
+                # Build context for LLM
+                context = {
+                    'location': player_data.get('current_location', 'northern_realms'),
+                    'turn_number': quest_result.get('turn_number', 1),
+                    'risk_level': quest_result.get('current_act', 'setup'),
+                    'player_data': player_data,
+                    'quest_state': quest_result
+                }
+
+                # Generate response using local LLM
+                response = self.llm_manager.generate_response(
+                    player_name=player_data.get('name', 'Adventurer'),
+                    choice=player_action,
+                    context=context,
+                    scenario="northern_realms"
+                )
+
+                return response.get('narrative', f"You {player_action.lower()}.")
+
+            except Exception as e:
+                logging.error(f"Error generating LLM narrative: {e}")
+                # Fall back to simple narrative
+
+        # Fallback narrative if LLM unavailable
         return f"You {player_action.lower()}. Your journey through the Northern Realms continues."
     
     def _generate_choices(self, quest_result: Dict, player_data: Dict) -> List[str]:
         """Generate available choices for player"""
+
+        # If milestone reached, use milestone choices
         if quest_result.get('milestone_reached'):
             milestone = quest_result.get('milestone', {})
             return milestone.get('choices', ["Continue north", "Explore the ruins", "Seek shelter"])
-        
+
+        # Use local LLM for dynamic choice generation
+        if self.llm_manager.is_available():
+            try:
+                # Build context for LLM
+                context = {
+                    'location': player_data.get('current_location', 'northern_realms'),
+                    'turn_number': quest_result.get('turn_number', 1),
+                    'risk_level': quest_result.get('current_act', 'setup'),
+                    'player_data': player_data,
+                    'quest_state': quest_result
+                }
+
+                # Generate response using local LLM
+                response = self.llm_manager.generate_response(
+                    player_name=player_data.get('name', 'Adventurer'),
+                    choice="continue",  # Generic choice for context
+                    context=context,
+                    scenario="northern_realms"
+                )
+
+                return response.get('choices', [
+                    "Continue your journey north",
+                    "Explore the ancient ruins",
+                    "Visit the nearby village",
+                    "Rest and recover"
+                ])
+
+            except Exception as e:
+                logging.error(f"Error generating LLM choices: {e}")
+
+        # Fallback choices if LLM unavailable
         return [
             "Continue your journey north",
             "Explore the ancient ruins",

@@ -24,30 +24,37 @@
 - **Dynamic Endings:** Seçimlerinize göre değişen sonlar
 - **Quest Milestones:** Önemli anlar ve dönüm noktaları
 
-### 🧠 Cosmic Horror Sanity System
-- **Sanity Tracking:** 100'den 0'a akıl sağlığı takibi
-- **5 Sanity Levels:** Stable → Disturbed → Fractured → Breaking → Shattered
-- **Forbidden Knowledge:** Güç için akıl sağlığınızı feda edin
-- **Reality Distortion:** Düşük sanity = gerçeklik bozulması
-- **Text Corruption:** Akıl sağlığınız azaldıkça metin bozulur
-- **Hallucinations:** Saniye-tabanlı halüsinasyonlar
+### 🪄 Complete Magic System
+- **6 Magic Schools:** Destruction, Restoration, Alteration, Conjuration, Illusion, Enchantment
+- **20+ Spells:** From Fire Bolt to Invisibility
+- **Mana Management:** Strategic spell casting with costs and regeneration
+- **Spell Schools:** Specialize in different magical disciplines
+- **Magical Artifacts:** Enchanted items that enhance spellcasting
 
-### 🌍 Three Unique Scenarios
+### 🏰 NPC Dialogue & Political Intrigue
+- **Dynamic NPCs:** 5+ unique characters with branching dialogue trees
+- **Kingdom Politics:** 3 kingdoms (Ironhold, Stormwatch, Frostmere) with dynamic relationships
+- **Reputation System:** Build alliances and rivalries across kingdoms
+- **Political Events:** Diplomatic choices affect entire realms
+- **Faction Management:** Noble houses and political intrigue
 
-1. **The Northern Realms** (Epic Fantasy)
-   - Ejderha tehditleri, antik kehanetler
-   - Sihir ve kahramanlık
-   - Skyrim + Tolkien atmosferi
+### 🎭 Immersive Fantasy World
+- **Rich Lore:** Deep world-building with ancient prophecies and dragon history
+- **Multiple Factions:** Political maneuvering and alliance building
+- **Living World:** NPCs react to player reputation and choices
+- **Consequence System:** Every decision ripples across the realm
 
-2. **The Whispering Town** (Cosmic Horror) ⭐ **EN GELİŞMİŞ**
-   - Lovecraft'tan ilham alan psikolojik korku
-   - Yasak bilgi ve akıl sağlığı mekanikleri
-   - Gerçekliğin çözülmesi
+### 🌍 The Northern Realms - Complete Epic Fantasy
 
-3. **Neo-Tokyo 2087** (Cyberpunk)
-   - Kurumsal komplo ve AI bilinci
-   - Hacking ve siber-modifikasyonlar
-   - Blade Runner atmosferi
+**Single-Scenario Excellence:** Focus entirely on one rich, detailed fantasy world:
+
+- **🐉 Dragon Prophecy:** 40-turn epic quest with ancient prophecies
+- **🏰 Kingdom Politics:** Three kingdoms (Ironhold, Stormwatch, Frostmere) with dynamic alliances
+- **🪄 Complete Magic:** 6 schools, 20+ spells, mana management, magical artifacts
+- **⚔️ Tactical Combat:** BG3-style encounters with environmental interactions
+- **👥 Living NPCs:** 5+ characters with branching dialogue and reputation systems
+- **🏛️ Political Intrigue:** Diplomatic choices affect entire realms
+- **📚 Rich Lore:** Deep world-building with history, factions, and consequences
 
 ---
 
@@ -109,23 +116,32 @@ FastAPI otomatik dokümantasyon: **http://localhost:8000/docs**
 ## 📋 API Endpoints
 
 ### Game Management
-- `POST /game/new` - Yeni oyun başlat
+- `POST /game/new` - Yeni oyun başlat (Northern Realms)
 - `POST /game/turn` - Oyun turu işle
 - `GET /game/state/{player_id}` - Oyun durumunu al
 - `POST /game/save` - Oyunu kaydet
 - `POST /game/load` - Oyunu yükle
 
-### Combat
+### Combat System
 - `POST /game/combat/action` - Combat aksiyonu işle
+- 7 Fantasy encounters (dragon, orcs, undead, assassins, troll, frost giants)
 
-### Cosmic Horror
-- `POST /game/sanity/loss` - Sanity kaybı tetikle
-- `POST /game/knowledge/learn` - Yasak bilgi öğren
+### Magic System
+- `GET /magic/spells` - Tüm büyüleri listele
+- `GET /magic/schools` - Büyü okullarını listele
+- `POST /magic/spells` - Büyü kullan
+- 6 schools, 20+ spells, mana management
+
+### NPC Dialogue & Politics
+- `GET /npcs` - NPC'leri listele
+- `POST /npcs/dialogue` - NPC ile konuşma
+- `GET /kingdoms` - Krallık durumlarını al
+- `POST /politics/ally` - Krallık ile ittifak kur
+- 5 NPCs, 3 kingdoms, political intrigue
 
 ### Information
-- `GET /scenarios` - Kullanılabilir scenarioları listele
-- `GET /knowledge` - Yasak bilgi listesi
 - `GET /health` - Sistem sağlık kontrolü
+- `GET /politics/events` - Siyasi olayları al
 
 ---
 

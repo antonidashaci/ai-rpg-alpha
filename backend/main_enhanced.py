@@ -605,10 +605,13 @@ async def health_check():
         "status": "healthy",
         "version": "1.0.0",
         "database": "connected",
+        "llm": game_orchestrator.llm_manager.get_status(),
         "systems": {
             "quest_engine": "operational",
             "combat_engine": "operational",
-            "sanity_engine": "operational",
+            "magic_engine": "operational",
+            "dialogue_engine": "operational",
+            "political_engine": "operational",
             "database": "operational"
         }
     }
