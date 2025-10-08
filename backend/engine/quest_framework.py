@@ -349,16 +349,21 @@ class QuestFrameworkEngine:
 # ============================================================================
 
 class QuestLibrary:
-    """Pre-designed long-form quests for different scenarios"""
+    """Pre-designed long-form quests for The Northern Realms"""
     
     @staticmethod
-    def the_whispering_town_quest() -> LongFormQuest:
+    def northern_realms_quest() -> LongFormQuest:
         """
-        Main quest for The Whispering Town (Cosmic Horror Scenario)
-        
-        A 40-turn cosmic horror quest involving a town where reality
-        is breaking down and forbidden knowledge corrupts the mind.
+        Main quest for The Northern Realms (Epic Fantasy)
+        Import from dedicated quest file for better organization
         """
+        from .northern_realms_quest import create_northern_realms_quest
+        return create_northern_realms_quest()
+    
+    # Legacy placeholder - not used
+    @staticmethod
+    def _old_incomplete_quest() -> LongFormQuest:
+        """Old incomplete quest template"""
         milestones = [
             # ACT I: SETUP (Turns 1-15)
             QuestMilestone(

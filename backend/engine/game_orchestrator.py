@@ -1,16 +1,13 @@
 """
-Game Orchestrator
-=================
+Game Orchestrator - Northern Realms Edition
+============================================
 
-Master controller that orchestrates all game systems:
+Master controller for The Northern Realms (Epic Fantasy):
 - Long-form quest progression
 - BG3-style combat encounters
-- Cosmic horror sanity mechanics
 - AI narrative generation
 - Database persistence
 - Turn-by-turn game flow
-
-This is the main brain that coordinates everything.
 """
 
 from typing import Dict, Any, Optional, Tuple, List
@@ -25,18 +22,16 @@ from .combat_system import (
     TacticalCombatEngine, CombatState, CombatOutcome,
     CombatEncounterLibrary, CombatDifficulty, ActionType
 )
-from .sanity_system import SanityEngine, SanityLevel
 from ..dao.game_database import GameDatabase
 
 
 class GameOrchestrator:
     """
-    Master game controller
+    Master game controller for The Northern Realms
     
     Coordinates:
     - Quest progression (30-40 turns)
     - Combat encounters (every 8-10 turns)
-    - Sanity mechanics (cosmic horror)
     - AI narrative generation
     - Database persistence
     """
@@ -45,7 +40,6 @@ class GameOrchestrator:
         self.db = GameDatabase(db_path)
         self.quest_engine = QuestFrameworkEngine()
         self.combat_engine = TacticalCombatEngine()
-        self.sanity_engine = SanityEngine()
         
         # Current game state
         self.player_id: Optional[str] = None
@@ -59,15 +53,13 @@ class GameOrchestrator:
     def start_new_game(
         self,
         player_name: str,
-        scenario: str,
         abilities: Optional[Dict[str, int]] = None
     ) -> Dict[str, Any]:
         """
-        Start a new game
+        Start a new game in The Northern Realms
         
         Args:
             player_name: Player character name
-            scenario: "northern_realms", "whispering_town", or "neo_tokyo"
             abilities: Optional D&D ability scores
         
         Returns:
@@ -78,11 +70,13 @@ class GameOrchestrator:
         player_id = str(uuid.uuid4())
         self.player_id = player_id
         
+        scenario = "northern_realms"
+        
         # Create player in database
         self.db.create_player(player_id, player_name, scenario, abilities)
         
-        # Load appropriate quest based on scenario
-        quest = self._load_scenario_quest(scenario)
+        # Load Northern Realms quest
+        quest = QuestLibrary.northern_realms_quest()
         self.quest_engine.load_quest(quest)
         
         # Create quest state in database
@@ -112,19 +106,8 @@ class GameOrchestrator:
             "quest_title": quest.title,
             "narrative": opening_narrative,
             "player_stats": player_data,
-            "quest_state": self.quest_engine.get_quest_state(),
-            "sanity_state": self.sanity_engine.get_sanity_state_summary() if scenario == "whispering_town" else None
+            "quest_state": self.quest_engine.get_quest_state()
         }
-    
-    def _load_scenario_quest(self, scenario: str) -> LongFormQuest:
-        """Load appropriate quest for scenario"""
-        if scenario == "whispering_town":
-            return QuestLibrary.the_whispering_town_quest()
-        elif scenario == "northern_realms":
-            return QuestLibrary.northern_realms_quest()
-        else:
-            # Default to whispering town
-            return QuestLibrary.the_whispering_town_quest()
     
     # ========================================================================
     # TURN PROCESSING
@@ -139,13 +122,6 @@ class GameOrchestrator:
     ) -> Dict[str, Any]:
         """
         Process a single game turn
-        
-        This is the main game loop entry point. Handles:
-        - Quest progression
-        - Combat triggers
-        - Sanity effects
-        - AI narrative generation
-        - Database updates
         
         Returns:
             Complete turn result with narrative, choices, and state updates
@@ -175,7 +151,6 @@ class GameOrchestrator:
         if quest_result.get('combat_trigger', False):
             combat_result = self._initiate_combat(player_data)
             
-            # Merge quest and combat results
             return {
                 **quest_result,
                 "combat_initiated": True,
@@ -183,17 +158,13 @@ class GameOrchestrator:
                 "combat_choices": combat_result['choices']
             }
         
-        # Generate AI narrative for this turn
+        # Generate narrative for this turn
         narrative = self._generate_turn_narrative(
             player_data,
             player_action,
             quest_result,
             ai_client
         )
-        
-        # Apply sanity effects if cosmic horror scenario
-        if player_data['scenario'] == 'whispering_town':
-            narrative = self._apply_sanity_effects(narrative, player_data)
         
         # Get next choices
         choices = self._generate_choices(quest_result, player_data)
@@ -216,8 +187,7 @@ class GameOrchestrator:
             "narrative": narrative,
             "choices": choices,
             "quest_state": quest_result,
-            "player_stats": self.db.get_player(player_id),
-            "sanity_state": self.sanity_engine.get_sanity_state_summary() if player_data['scenario'] == 'whispering_town' else None
+            "player_stats": self.db.get_player(player_id)
         }
     
     # ========================================================================
@@ -226,13 +196,8 @@ class GameOrchestrator:
     
     def _initiate_combat(self, player_data: Dict) -> Dict[str, Any]:
         """Initiate a combat encounter"""
-        scenario = player_data['scenario']
-        
-        # Select appropriate encounter based on scenario
-        if scenario == 'whispering_town':
-            enemies, environment, context = CombatEncounterLibrary.cosmic_horror_cultists()
-        else:
-            enemies, environment, context = CombatEncounterLibrary.bandit_ambush()
+        # Select fantasy encounter
+        enemies, environment, context = CombatEncounterLibrary.bandit_ambush()
         
         # Create combat state
         encounter_id = f"combat_{random.randint(1000, 9999)}"
@@ -368,30 +333,9 @@ class GameOrchestrator:
         if self.quest_engine.active_quest:
             self.quest_engine.active_quest.progression.combat_encounters_completed += 1
         
-        # Handle defeat
+        # Handle defeat - failure as content
         if outcome == CombatOutcome.DEFEAT:
-            # Failure-as-content: Player survives but with consequences
             self.db.update_player_stats(self.player_id, {'health': 1})  # Barely alive
-            
-            # Cosmic horror scenario: lose sanity on defeat
-            player_data = self.db.get_player(self.player_id)
-            if player_data['scenario'] == 'whispering_town':
-                sanity_result = self.sanity_engine.process_sanity_loss(
-                    amount=15,
-                    cause="Combat defeat trauma"
-                )
-                self.db.record_sanity_event(
-                    player_id=self.player_id,
-                    event_type="combat_defeat",
-                    sanity_change=-15,
-                    old_sanity=sanity_result['current_sanity'] + 15,
-                    new_sanity=sanity_result['current_sanity'],
-                    old_level=sanity_result.get('old_level', 'stable'),
-                    new_level=sanity_result['sanity_level'],
-                    cause="Combat defeat trauma"
-                )
-                
-                outcome_narrative += f"\n\n{sanity_result['narrative']}"
         
         # Clear combat state
         self.current_combat = None
@@ -405,97 +349,6 @@ class GameOrchestrator:
             "choices": ["Continue your journey", "Rest and recover", "Examine the aftermath"],
             "player_stats": self.db.get_player(self.player_id)
         }
-    
-    # ========================================================================
-    # SANITY MECHANICS (Cosmic Horror)
-    # ========================================================================
-    
-    def trigger_sanity_loss(
-        self,
-        player_id: str,
-        amount: int,
-        cause: str
-    ) -> Dict[str, Any]:
-        """Trigger sanity loss event"""
-        result = self.sanity_engine.process_sanity_loss(amount, cause)
-        
-        # Update player sanity in database
-        self.db.update_player_stats(
-            player_id,
-            {
-                'sanity': result['current_sanity'],
-                'corruption_level': int(result['corruption_level'])
-            }
-        )
-        
-        # Record sanity event
-        self.db.record_sanity_event(
-            player_id=player_id,
-            event_type="sanity_loss",
-            sanity_change=-amount,
-            old_sanity=result['current_sanity'] + amount,
-            new_sanity=result['current_sanity'],
-            old_level=result.get('old_level', 'stable'),
-            new_level=result['sanity_level'],
-            cause=cause,
-            hallucination_triggered=result.get('hallucination') is not None,
-            distortions_added=result.get('new_distortions', [])
-        )
-        
-        return result
-    
-    def learn_forbidden_knowledge(
-        self,
-        player_id: str,
-        knowledge_id: str
-    ) -> Dict[str, Any]:
-        """Player learns forbidden knowledge"""
-        result = self.sanity_engine.learn_forbidden_knowledge(knowledge_id)
-        
-        if 'error' in result:
-            return result
-        
-        # Update player stats
-        self.db.update_player_stats(
-            player_id,
-            {
-                'sanity': result['current_sanity'],
-                'corruption_level': int(result['corruption_level'])
-            }
-        )
-        
-        # Record knowledge acquisition
-        knowledge = self.sanity_engine.knowledge_library[knowledge_id]
-        self.db.record_forbidden_knowledge(
-            player_id=player_id,
-            knowledge_id=knowledge_id,
-            title=knowledge.title,
-            knowledge_type=knowledge.knowledge_type.value,
-            sanity_cost=knowledge.sanity_cost,
-            power_gain=knowledge.power_gain,
-            corruption_level=knowledge.corruption_level
-        )
-        
-        # Record sanity event
-        self.db.record_sanity_event(
-            player_id=player_id,
-            event_type="knowledge_gained",
-            sanity_change=-knowledge.sanity_cost,
-            old_sanity=result['current_sanity'] + knowledge.sanity_cost,
-            new_sanity=result['current_sanity'],
-            old_level=result.get('old_level', 'stable'),
-            new_level=result['sanity_level'],
-            cause=f"Learning: {knowledge.title}",
-            is_voluntary=True,
-            hallucination_triggered=result.get('hallucination') is not None,
-            distortions_added=result.get('new_distortions', [])
-        )
-        
-        return result
-    
-    def _apply_sanity_effects(self, narrative: str, player_data: Dict) -> str:
-        """Apply sanity-based text corruption to narrative"""
-        return self.sanity_engine.apply_text_corruption(narrative)
     
     # ========================================================================
     # HELPER METHODS
@@ -530,29 +383,24 @@ class GameOrchestrator:
         quest_result: Dict,
         ai_client: Optional[Any]
     ) -> str:
-        """Generate AI narrative for turn (placeholder for AI integration)"""
-        # TODO: Integrate with AI client for dynamic narrative generation
-        # For now, return milestone narrative if available
-        
+        """Generate narrative for turn"""
         if quest_result.get('milestone_reached'):
             milestone = quest_result.get('milestone', {})
             return f"**{milestone.get('title', 'Next Step')}**\n\n{milestone.get('description', '')}"
         
-        # Default narrative
-        return f"You {player_action.lower()}. Your journey continues through turn {quest_result['turn_number']}."
+        return f"You {player_action.lower()}. Your journey through the Northern Realms continues."
     
     def _generate_choices(self, quest_result: Dict, player_data: Dict) -> List[str]:
         """Generate available choices for player"""
         if quest_result.get('milestone_reached'):
             milestone = quest_result.get('milestone', {})
-            return milestone.get('choices', ["Continue", "Investigate", "Rest"])
+            return milestone.get('choices', ["Continue north", "Explore the ruins", "Seek shelter"])
         
-        # Default choices
         return [
-            "Continue forward",
-            "Explore the area",
-            "Rest and recover",
-            "Check your surroundings"
+            "Continue your journey north",
+            "Explore the ancient ruins",
+            "Visit the nearby village",
+            "Rest and recover"
         ]
     
     def _generate_combat_choices(self, combat_state: CombatState) -> List[str]:
@@ -587,7 +435,6 @@ class GameOrchestrator:
         action_lower = player_action.lower()
         
         if "attack" in action_lower:
-            # Extract target index from choice
             return ActionType.ATTACK, choice_index if choice_index < len(self.current_combat.enemies) else 0, None
         elif "use" in action_lower:
             return ActionType.USE_ENVIRONMENT, None, 0
@@ -615,11 +462,10 @@ class GameOrchestrator:
             quest_state = self.quest_engine.get_quest_state()
         
         game_state = {
-            'scenario': player_data['scenario'],
+            'scenario': 'northern_realms',
             'turn_number': quest_state.get('turn_number', 0) if quest_state else 0,
             'player_state': player_data,
-            'quest_state': quest_state,
-            'sanity_state': self.sanity_engine.get_sanity_state_summary() if player_data['scenario'] == 'whispering_town' else None
+            'quest_state': quest_state
         }
         
         return self.db.create_save(player_id, slot_number, save_name, game_state)

@@ -121,17 +121,16 @@ async def root():
 @app.post("/game/new")
 async def create_new_game(request: NewGameRequest):
     """
-    Start a new game
+    Start a new game in The Northern Realms
     
-    Scenarios:
-    - northern_realms: Epic fantasy with dragons and prophecies
-    - whispering_town: Cosmic horror with sanity mechanics
-    - neo_tokyo: Cyberpunk with AI and corporations
+    Epic fantasy scenario with:
+    - Dragon prophecy storyline
+    - Kingdom politics and warfare
+    - Ancient magic and artifacts
     """
     try:
         result = game_orchestrator.start_new_game(
             player_name=request.player_name,
-            scenario=request.scenario,
             abilities=request.abilities
         )
         
