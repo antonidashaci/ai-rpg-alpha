@@ -27,6 +27,7 @@ from .npc_dialogue import DialogueEngine, NPCDefinition
 from .political_system import PoliticalEngine, KingdomState
 from .side_quests import SideQuestLibrary
 from .additional_encounters import AdditionalEncounters
+from .skyrim_style_quests import SkyrimStyleQuestLibrary
 from .achievement_system import AchievementEngine, AchievementNotification
 from .audio_system import AudioSystem, AudioManager, MusicTrack, SoundEffect
 from ..dao.game_database import GameDatabase
@@ -222,20 +223,31 @@ class GameOrchestrator:
     
     def _initiate_combat(self, player_data: Dict) -> Dict[str, Any]:
         """Initiate a combat encounter"""
-        # Randomly select from available encounter types
+        # Randomly select from available encounter types (expanded for Skyrim-style variety)
         encounter_types = [
+            # Original encounters
             "bandit", "dragon", "orc", "undead", "assassin", "troll", "giant",
+            # Additional encounters
             "ancient_guardian", "mercenary_band", "magical_anomaly",
-            "frost_elemental", "shadow_assassins", "corrupted_beast", "storm_elemental"
+            "frost_elemental", "shadow_assassins", "corrupted_beast", "storm_elemental",
+            # New Skyrim-style encounters
+            "skeleton_warrior", "draugr_lord", "troll_chieftain", "ice_wraith",
+            "bandit_chief", "necromancer", "storm_atronach", "ancient_dwarven_automaton",
+            "vampire_lord", "werewolf_pack", "giant_frost", "dragon_priest"
         ]
 
         encounter_type = random.choice(encounter_types)
 
-        # Get encounter data
+        # Get encounter data based on type
         if encounter_type in AdditionalEncounters.get_all_additional_encounters():
             enemies, environment, context = AdditionalEncounters.get_random_additional_encounter()
+        elif encounter_type in ["skeleton_warrior", "draugr_lord", "troll_chieftain", "ice_wraith",
+                               "bandit_chief", "necromancer", "storm_atronach", "ancient_dwarven_automaton",
+                               "vampire_lord", "werewolf_pack", "giant_frost", "dragon_priest"]:
+            # Use Skyrim-style encounters
+            enemies, environment, context = self._get_skyrim_style_encounter(encounter_type)
         else:
-            # Use fantasy encounters library
+            # Use original fantasy encounters library
             enemies, environment, context = CombatEncounterLibrary.get_fantasy_encounter(encounter_type)
         
         # Create combat state
@@ -493,6 +505,467 @@ class GameOrchestrator:
 
         # Fallback narrative if LLM unavailable
         return f"You {player_action.lower()}. Your journey through the Northern Realms continues."
+
+    def _get_skyrim_style_encounter(self, encounter_type: str) -> Tuple[List[Enemy], List[EnvironmentalFeature], str]:
+        """Get Skyrim-style combat encounter"""
+        from .combat_system import Enemy, EnvironmentalFeature, TerrainType
+
+        if encounter_type == "skeleton_warrior":
+            enemies = [
+                Enemy(
+                    name="Ancient Skeleton Warrior",
+                    health=25,
+                    max_health=25,
+                    attack_power=8,
+                    defense=4,
+                    intelligence=2,
+                    morale=100  # Undead don't flee
+                ),
+                Enemy(
+                    name="Skeleton Archer",
+                    health=18,
+                    max_health=18,
+                    attack_power=6,
+                    defense=2,
+                    intelligence=3,
+                    morale=100
+                )
+            ]
+            environment = [
+                EnvironmentalFeature(
+                    feature_type=TerrainType.COVER,
+                    name="Ancient Tombs",
+                    description="Stone tombs provide excellent cover from ranged attacks.",
+                    provides_cover=True
+                )
+            ]
+            context = (
+                "💀 **ANCIENT SKELETONS**\n\n"
+                "The crypt echoes with the clatter of bones as skeletal warriors rise from "
+                "their ancient tombs. These undead guardians have protected these halls for centuries."
+            )
+
+        elif encounter_type == "draugr_lord":
+            enemies = [
+                Enemy(
+                    name="Draugr Lord",
+                    health=60,
+                    max_health=60,
+                    attack_power=15,
+                    defense=6,
+                    intelligence=8,
+                    morale=100
+                ),
+                Enemy(
+                    name="Draugr Warrior",
+                    health=30,
+                    max_health=30,
+                    attack_power=10,
+                    defense=4,
+                    intelligence=4,
+                    morale=100
+                )
+            ]
+            environment = [
+                EnvironmentalFeature(
+                    feature_type=TerrainType.HAZARDOUS,
+                    name="Poisonous Spores",
+                    description="Fungal growths release poisonous spores that weaken combatants.",
+                    damage_potential=15,
+                    uses_remaining=3
+                )
+            ]
+            context = (
+                "🧟 **DRAUGR LORD**\n\n"
+                "A powerful draugr lord awakens from his throne of bones, his ancient armor "
+                "creaking as he rises. These undead Nord warriors guard their tombs with "
+                "fierce determination."
+            )
+
+        elif encounter_type == "troll_chieftain":
+            enemies = [
+                Enemy(
+                    name="Troll Chieftain",
+                    health=80,
+                    max_health=80,
+                    attack_power=18,
+                    defense=8,
+                    intelligence=6,
+                    morale=90
+                ),
+                Enemy(
+                    name="Troll Warrior",
+                    health=50,
+                    max_health=50,
+                    attack_power=12,
+                    defense=5,
+                    intelligence=4,
+                    morale=75
+                )
+            ]
+            environment = [
+                EnvironmentalFeature(
+                    feature_type=TerrainType.DESTRUCTIBLE,
+                    name="Massive Boulder",
+                    description="A huge boulder that can be pushed onto enemies for massive damage.",
+                    is_destructible=True,
+                    damage_potential=40,
+                    uses_remaining=1
+                )
+            ]
+            context = (
+                "🗻 **TROLL CHIEFTAIN**\n\n"
+                "A massive troll chieftain blocks the mountain pass, his club made from "
+                "an entire tree trunk. These brutish giants rule the high places of "
+                "the Northern Realms."
+            )
+
+        elif encounter_type == "ice_wraith":
+            enemies = [
+                Enemy(
+                    name="Ice Wraith",
+                    health=35,
+                    max_health=35,
+                    attack_power=12,
+                    defense=3,
+                    intelligence=5,
+                    morale=100  # Ethereal beings
+                )
+            ]
+            environment = [
+                EnvironmentalFeature(
+                    feature_type=TerrainType.HAZARDOUS,
+                    name="Freezing Winds",
+                    description="Bitter cold winds that can freeze combatants in place.",
+                    damage_potential=20,
+                    uses_remaining=4
+                )
+            ]
+            context = (
+                "❄️ **ICE WRAITH**\n\n"
+                "An ethereal ice wraith materializes from the swirling snow, its form "
+                "shifting like living frost. These spectral beings are born of the deepest winter."
+            )
+
+        elif encounter_type == "bandit_chief":
+            enemies = [
+                Enemy(
+                    name="Bandit Warlord",
+                    health=50,
+                    max_health=50,
+                    attack_power=16,
+                    defense=5,
+                    intelligence=10,
+                    morale=85
+                ),
+                Enemy(
+                    name="Elite Bandit",
+                    health=30,
+                    max_health=30,
+                    attack_power=12,
+                    defense=3,
+                    intelligence=6,
+                    morale=75
+                ),
+                Enemy(
+                    name="Bandit Archer",
+                    health=25,
+                    max_health=25,
+                    attack_power=10,
+                    defense=2,
+                    intelligence=7,
+                    morale=70
+                )
+            ]
+            environment = [
+                EnvironmentalFeature(
+                    feature_type=TerrainType.COVER,
+                    name="Barricades",
+                    description="Bandits have set up defensive barricades and traps.",
+                    provides_cover=True
+                )
+            ]
+            context = (
+                "🏴‍☠️ **BANDIT WARLORD**\n\n"
+                "A notorious bandit warlord and his elite crew have set up an ambush. "
+                "These are no common highwaymen - they're organized, ruthless, and well-equipped."
+            )
+
+        elif encounter_type == "necromancer":
+            enemies = [
+                Enemy(
+                    name="Dark Necromancer",
+                    health=40,
+                    max_health=40,
+                    attack_power=10,
+                    defense=3,
+                    intelligence=15,
+                    morale=100
+                ),
+                Enemy(
+                    name="Raised Skeleton",
+                    health=20,
+                    max_health=20,
+                    attack_power=8,
+                    defense=4,
+                    intelligence=2,
+                    morale=100
+                ),
+                Enemy(
+                    name="Raised Skeleton",
+                    health=20,
+                    max_health=20,
+                    attack_power=8,
+                    defense=4,
+                    intelligence=2,
+                    morale=100
+                ),
+                Enemy(
+                    name="Zombie Thrall",
+                    health=35,
+                    max_health=35,
+                    attack_power=12,
+                    defense=2,
+                    intelligence=1,
+                    morale=100
+                )
+            ]
+            environment = [
+                EnvironmentalFeature(
+                    feature_type=TerrainType.DESTRUCTIBLE,
+                    name="Necromantic Altar",
+                    description="The source of the necromancer's power. Destroying it weakens all undead.",
+                    is_destructible=True,
+                    damage_potential=30,
+                    uses_remaining=1
+                )
+            ]
+            context = (
+                "☠️ **DARK NECROMANCER**\n\n"
+                "A dark necromancer performs a ritual in an ancient graveyard, raising "
+                "the dead to serve his twisted purposes. His control over death itself "
+                "makes him a formidable opponent."
+            )
+
+        elif encounter_type == "storm_atronach":
+            enemies = [
+                Enemy(
+                    name="Storm Atronach",
+                    health=45,
+                    max_health=45,
+                    attack_power=14,
+                    defense=4,
+                    intelligence=6,
+                    morale=100  # Elemental beings
+                ),
+                Enemy(
+                    name="Lightning Sprite",
+                    health=15,
+                    max_health=15,
+                    attack_power=8,
+                    defense=2,
+                    intelligence=4,
+                    morale=100
+                )
+            ]
+            environment = [
+                EnvironmentalFeature(
+                    feature_type=TerrainType.HAZARDOUS,
+                    name="Storm Clouds",
+                    description="Dark clouds gather, attracting lightning that can strike randomly.",
+                    damage_potential=25,
+                    uses_remaining=5
+                )
+            ]
+            context = (
+                "⚡ **STORM ATRONACH**\n\n"
+                "A massive storm atronach forms from the gathering tempest, its body "
+                "composed of swirling clouds and crackling lightning. These elemental "
+                "beings command the fury of the storm itself."
+            )
+
+        elif encounter_type == "ancient_dwarven_automaton":
+            enemies = [
+                Enemy(
+                    name="Ancient Dwarven Automaton",
+                    health=70,
+                    max_health=70,
+                    attack_power=16,
+                    defense=8,
+                    intelligence=8,
+                    morale=100  # Machines don't flee
+                )
+            ]
+            environment = [
+                EnvironmentalFeature(
+                    feature_type=TerrainType.DESTRUCTIBLE,
+                    name="Steam Vents",
+                    description="Ancient machinery releases pressurized steam that can damage enemies.",
+                    is_destructible=True,
+                    damage_potential=20,
+                    uses_remaining=3
+                )
+            ]
+            context = (
+                "🤖 **DWARVEN AUTOMATON**\n\n"
+                "An ancient dwarven automaton activates with a hiss of steam and grinding gears. "
+                "These mechanical guardians from a lost civilization still protect their "
+                "forgotten halls with mechanical precision."
+            )
+
+        elif encounter_type == "vampire_lord":
+            enemies = [
+                Enemy(
+                    name="Vampire Lord",
+                    health=55,
+                    max_health=55,
+                    attack_power=17,
+                    defense=5,
+                    intelligence=12,
+                    morale=95
+                ),
+                Enemy(
+                    name="Vampire Thrall",
+                    health=25,
+                    max_health=25,
+                    attack_power=10,
+                    defense=3,
+                    intelligence=5,
+                    morale=100
+                )
+            ]
+            environment = [
+                EnvironmentalFeature(
+                    feature_type=TerrainType.COVER,
+                    name="Crypt Shadows",
+                    description="Deep shadows that vampires can use to their advantage.",
+                    provides_cover=True
+                )
+            ]
+            context = (
+                "🧛 **VAMPIRE LORD**\n\n"
+                "An ancient vampire lord emerges from his crypt, his eyes glowing with "
+                "supernatural hunger. These immortal predators have haunted the Northern "
+                "Realms for centuries, feeding on the living."
+            )
+
+        elif encounter_type == "werewolf_pack":
+            enemies = [
+                Enemy(
+                    name="Werewolf Alpha",
+                    health=45,
+                    max_health=45,
+                    attack_power=15,
+                    defense=4,
+                    intelligence=7,
+                    morale=90
+                ),
+                Enemy(
+                    name="Werewolf Pack Member",
+                    health=30,
+                    max_health=30,
+                    attack_power=12,
+                    defense=3,
+                    intelligence=5,
+                    morale=80
+                ),
+                Enemy(
+                    name="Werewolf Pack Member",
+                    health=30,
+                    max_health=30,
+                    attack_power=12,
+                    defense=3,
+                    intelligence=5,
+                    morale=80
+                )
+            ]
+            environment = [
+                EnvironmentalFeature(
+                    feature_type=TerrainType.HAZARDOUS,
+                    name="Full Moon",
+                    description="The full moon increases werewolf strength and ferocity.",
+                    damage_potential=0,
+                    uses_remaining=0  # Permanent effect
+                )
+            ]
+            context = (
+                "🐺 **WEREWOLF PACK**\n\n"
+                "Under the light of the full moon, a pack of werewolves emerges from the "
+                "forest. Their howls echo through the night as they circle their prey "
+                "with predatory grace."
+            )
+
+        elif encounter_type == "giant_frost":
+            enemies = [
+                Enemy(
+                    name="Frost Giant",
+                    health=90,
+                    max_health=90,
+                    attack_power=20,
+                    defense=7,
+                    intelligence=6,
+                    morale=100
+                )
+            ]
+            environment = [
+                EnvironmentalFeature(
+                    feature_type=TerrainType.DESTRUCTIBLE,
+                    name="Ice Formations",
+                    description="Massive ice formations that can be shattered for area damage.",
+                    is_destructible=True,
+                    damage_potential=35,
+                    uses_remaining=2
+                )
+            ]
+            context = (
+                "🧊 **FROST GIANT**\n\n"
+                "A massive frost giant towers over the landscape, his blue skin etched "
+                "with frost patterns. These colossal beings from the frozen north "
+                "consider humans little more than pests."
+            )
+
+        elif encounter_type == "dragon_priest":
+            enemies = [
+                Enemy(
+                    name="Dragon Priest",
+                    health=50,
+                    max_health=50,
+                    attack_power=14,
+                    defense=4,
+                    intelligence=16,
+                    morale=100
+                ),
+                Enemy(
+                    name="Dragon Priest Acolyte",
+                    health=25,
+                    max_health=25,
+                    attack_power=8,
+                    defense=2,
+                    intelligence=8,
+                    morale=100
+                )
+            ]
+            environment = [
+                EnvironmentalFeature(
+                    feature_type=TerrainType.HAZARDOUS,
+                    name="Dragon Shout Echo",
+                    description="Residual dragon shouts that can disorient and damage.",
+                    damage_potential=20,
+                    uses_remaining=3
+                )
+            ]
+            context = (
+                "🐲 **DRAGON PRIEST**\n\n"
+                "An ancient dragon priest in ornate robes approaches, his mask concealing "
+                "features that have not seen daylight for centuries. He speaks in the "
+                "dragon tongue, commanding powers beyond mortal ken."
+            )
+
+        else:
+            # Fallback to bandit ambush
+            return FantasyEncounters.bandit_ambush()
+
+        return enemies, environment, context
     
     def _generate_choices(self, quest_result: Dict, player_data: Dict) -> List[str]:
         """Generate available choices for player"""
