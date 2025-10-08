@@ -1,0 +1,23 @@
+# Desktop Application Requirements for AI-RPG-Alpha
+# Standalone PC application with PyQt6 GUI
+
+# Core game engine (no web framework needed)
+SQLAlchemy
+pydantic
+chromadb
+sentence-transformers
+python-dotenv
+jinja2
+pytest
+pyyaml
+rich
+
+# Desktop GUI
+PyQt6>=6.6.0
+
+# Local AI (Ollama integration)
+requests
+
+# Optional: For development and testing
+pytest-qt
+pyinstaller  # For creating standalone executables

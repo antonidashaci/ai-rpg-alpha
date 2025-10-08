@@ -63,6 +63,7 @@
 ### Gereksinimler
 - Python 3.11+
 - pip (Python package manager)
+- **Ollama** (for local AI) - See setup instructions below
 
 ### Kurulum
 
@@ -75,11 +76,50 @@ cd ai-rpg-alpha
 cd backend
 pip install -r requirements.txt
 
+# Lokal LLM'i kurun (Ollama)
+python ../scripts/setup_local_llm.py
+
 # Backend'i başlatın
 python main_enhanced.py
 ```
 
 Backend şu adreste çalışacak: **http://localhost:8000**
+
+### 🧠 Local AI Setup (Ollama)
+
+**AI-RPG-Alpha uses local LLMs for privacy and control:**
+
+1. **Install Ollama:**
+   ```bash
+   # Linux/Mac
+   curl -fsSL https://ollama.ai/install.sh | sh
+
+   # Windows - Manual download from https://ollama.ai/download
+   ```
+
+2. **Pull a model:**
+   ```bash
+   ollama pull llama2
+   ```
+
+3. **Start Ollama server:**
+   ```bash
+   ollama serve
+   ```
+
+4. **Verify installation:**
+   ```bash
+   python scripts/setup_local_llm.py
+   ```
+
+**Supported Models:**
+- `llama2` (7B/13B) - Fast, good quality
+- `codellama` - Code-focused variant
+- `mistral` - Alternative model
+- `vicuna` - Fine-tuned variant
+
+**Alternative Setup:**
+Run `python scripts/setup_local_llm.py` for automated setup and testing.
 
 ### Frontend
 
@@ -140,8 +180,14 @@ FastAPI otomatik dokümantasyon: **http://localhost:8000/docs**
 - 5 NPCs, 3 kingdoms, political intrigue
 
 ### Information
-- `GET /health` - Sistem sağlık kontrolü
+- `GET /health` - Sistem sağlık kontrolü (LLM durumu dahil)
 - `GET /politics/events` - Siyasi olayları al
+
+### 🤖 AI System
+- **Local LLM Integration:** Dynamic narrative generation using Ollama
+- **Fallback Responses:** Works even without local LLM
+- **Privacy-First:** All AI processing happens locally
+- **Model Support:** llama2, codellama, mistral, vicuna
 
 ---
 
