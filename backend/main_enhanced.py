@@ -21,6 +21,9 @@ load_dotenv()
 
 # Import game systems
 from engine.game_orchestrator import GameOrchestrator
+from engine.magic_system import MagicEngine, MageStats, Spell
+from engine.npc_dialogue import DialogueEngine
+from engine.political_system import PoliticalEngine
 from ai.narrative_templates import NarrativeTemplates, NarrativeParser, FallbackNarratives
 
 app = FastAPI(
@@ -84,6 +87,25 @@ class SaveGameRequest(BaseModel):
 class LoadGameRequest(BaseModel):
     player_id: str
     slot_number: int
+
+
+class MagicSpellRequest(BaseModel):
+    player_id: str
+    spell_id: str
+    target: Optional[str] = None
+
+
+class NPCDialogueRequest(BaseModel):
+    player_id: str
+    npc_id: str
+    choice: str
+
+
+class PoliticalActionRequest(BaseModel):
+    player_id: str
+    action: str
+    kingdom_id: str
+    target_kingdom_id: Optional[str] = None
 
 
 class GameResponse(BaseModel):
@@ -334,23 +356,246 @@ async def get_scenarios():
     }
 
 
-@app.get("/knowledge")
-async def get_forbidden_knowledge():
-    """Get available forbidden knowledge (Whispering Town only)"""
-    knowledge_list = []
-    
-    for k_id, knowledge in game_orchestrator.sanity_engine.knowledge_library.items():
-        knowledge_list.append({
-            "id": k_id,
-            "title": knowledge.title,
-            "type": knowledge.knowledge_type.value,
-            "sanity_cost": knowledge.sanity_cost,
-            "power_gain": knowledge.power_gain,
-            "corruption_level": knowledge.corruption_level,
-            "description": knowledge.description
+# ============================================================================
+# MAGIC SYSTEM ENDPOINTS
+# ============================================================================
+
+@app.post("/magic/spells")
+async def cast_spell(request: MagicSpellRequest):
+    """
+    Cast a magical spell
+
+    Available spells:
+    - firebolt (Destruction)
+    - cure_wounds (Restoration)
+    - mage_hand (Alteration)
+    - minor_illusion (Illusion)
+    - And many more...
+    """
+    try:
+        # Get player data
+        player_data = game_orchestrator.db.get_player(request.player_id)
+        if not player_data:
+            raise HTTPException(status_code=404, detail="Player not found")
+
+        # Create mage stats from player data
+        mage_stats = MageStats(
+            level=player_data.get('level', 1),
+            mana=player_data.get('mana', 10),
+            max_mana=player_data.get('max_mana', 10)
+        )
+
+        # Cast spell
+        result = game_orchestrator.magic_engine.cast_spell(
+            mage_stats=mage_stats,
+            spell_id=request.spell_id,
+            target=request.target
+        )
+
+        # Update player mana if spell was cast
+        if result.success:
+            game_orchestrator.db.update_player_stats(
+                request.player_id,
+                {'mana': mage_stats.mana}
+            )
+
+        return result
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/magic/spells")
+async def get_available_spells():
+    """Get all available spells"""
+    spells = []
+    for spell_id, spell in game_orchestrator.magic_engine.spell_library.items():
+        spells.append({
+            "id": spell_id,
+            "name": spell.name,
+            "school": spell.school.value,
+            "level": spell.level.value,
+            "mana_cost": spell.mana_cost,
+            "description": spell.description,
+            "target_type": spell.target_type.value,
+            "effect_type": spell.effect_type.value
         })
-    
-    return {"knowledge": knowledge_list}
+
+    return {"spells": spells}
+
+
+@app.get("/magic/schools")
+async def get_magic_schools():
+    """Get magic school information"""
+    from engine.magic_system import MagicSchool
+
+    schools = []
+    for school in MagicSchool:
+        spells = game_orchestrator.magic_engine.get_spells_by_school(school)
+        schools.append({
+            "id": school.value,
+            "name": school.name.title(),
+            "description": f"School of {school.name.title()} magic",
+            "spell_count": len(spells)
+        })
+
+    return {"schools": schools}
+
+
+# ============================================================================
+# NPC DIALOGUE ENDPOINTS
+# ============================================================================
+
+@app.get("/npcs")
+async def get_npcs(location: Optional[str] = None, kingdom: Optional[str] = None):
+    """Get available NPCs"""
+    npcs = []
+
+    for npc_id, npc in game_orchestrator.dialogue_engine.npc_library.items():
+        # Filter by location if specified
+        if location and npc.location != location:
+            continue
+
+        # Filter by kingdom if specified
+        if kingdom and npc.kingdom != kingdom:
+            continue
+
+        npcs.append({
+            "id": npc_id,
+            "name": npc.name,
+            "role": npc.role.value,
+            "personality": npc.personality.value,
+            "location": npc.location,
+            "kingdom": npc.kingdom,
+            "reputation": npc.base_reputation,
+            "mood": npc.current_mood.value,
+            "is_quest_giver": npc.is_quest_giver,
+            "is_merchant": npc.is_merchant,
+            "is_trainer": npc.is_trainer
+        })
+
+    return {"npcs": npcs}
+
+
+@app.post("/npcs/dialogue")
+async def npc_dialogue(request: NPCDialogueRequest):
+    """
+    Process NPC conversation
+
+    NPCs available:
+    - king_alaric (Ironhold King)
+    - captain_thorne (Stormwatch Guard)
+    - mage_elara (Frostmere Mage)
+    - blacksmith_grom (Ironhold Blacksmith)
+    - And more...
+    """
+    try:
+        # Get player reputation for this NPC's kingdom
+        npc = game_orchestrator.dialogue_engine.get_npc(request.npc_id)
+        if not npc:
+            raise HTTPException(status_code=404, detail="NPC not found")
+
+        player_reputation = game_orchestrator.political_engine.get_player_reputation(npc.kingdom)
+
+        # Process dialogue
+        result = game_orchestrator.dialogue_engine.process_conversation(
+            npc_id=request.npc_id,
+            player_choice=request.choice,
+            player_reputation=player_reputation
+        )
+
+        # Update political relationships if reputation changed
+        if result.get("reputation_change", 0) != 0:
+            game_orchestrator.political_engine.update_player_reputation(
+                npc.kingdom,
+                result["reputation_change"]
+            )
+
+        return result
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# POLITICAL SYSTEM ENDPOINTS
+# ============================================================================
+
+@app.get("/kingdoms")
+async def get_kingdoms():
+    """Get all kingdom information"""
+    return {
+        "kingdoms": game_orchestrator.political_engine.get_kingdom_relations_summary()
+    }
+
+
+@app.get("/kingdoms/{kingdom_id}")
+async def get_kingdom(kingdom_id: str):
+    """Get specific kingdom information"""
+    kingdom = game_orchestrator.political_engine.get_kingdom(kingdom_id)
+    if not kingdom:
+        raise HTTPException(status_code=404, detail="Kingdom not found")
+
+    return {
+        "kingdom_id": kingdom.kingdom_id,
+        "name": kingdom.name,
+        "ruler": kingdom.ruler,
+        "status": kingdom.status.value,
+        "stability": kingdom.get_stability_score(),
+        "relations": {k: v.value for k, v in kingdom.relations.items()},
+        "player_reputation": kingdom.player_reputation,
+        "player_alliance": kingdom.player_alliance,
+        "resources": {
+            "treasury": kingdom.treasury,
+            "military": kingdom.military_strength,
+            "loyalty": kingdom.population_loyalty
+        },
+        "noble_houses": kingdom.noble_houses,
+        "active_factions": kingdom.active_factions
+    }
+
+
+@app.post("/politics/ally")
+async def form_alliance(request: PoliticalActionRequest):
+    """
+    Form alliance with a kingdom
+
+    Requirements:
+    - Player reputation >= 20 in target kingdom
+    - Kingdom not at war
+    - Not already allied
+    """
+    try:
+        result = game_orchestrator.political_engine.form_alliance(request.kingdom_id)
+
+        # Update player data if alliance formed
+        if result["success"]:
+            game_orchestrator.db.update_player_stats(
+                request.player_id,
+                {"alliance_kingdom": request.kingdom_id}
+            )
+
+        return result
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/politics/events")
+async def get_political_events():
+    """Get recent political events"""
+    # This would return recent events from the political system
+    return {
+        "events": [
+            {
+                "id": "example_event",
+                "title": "Recent Dragon Sighting",
+                "description": "Dragons have been spotted near the borders",
+                "affected_kingdoms": ["ironhold", "stormwatch"],
+                "turn_occurred": 15
+            }
+        ]
+    }
 
 
 @app.get("/health")

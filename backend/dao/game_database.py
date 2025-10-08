@@ -246,6 +246,97 @@ class GameDatabase:
             )
         """)
         
+        # Magic System table
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS player_magic (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                player_id TEXT NOT NULL,
+
+                -- Magic Stats
+                mage_level INTEGER DEFAULT 1,
+                mana INTEGER DEFAULT 10,
+                max_mana INTEGER DEFAULT 10,
+
+                -- School Affinities
+                destruction_affinity INTEGER DEFAULT 0,
+                restoration_affinity INTEGER DEFAULT 0,
+                alteration_affinity INTEGER DEFAULT 0,
+                conjuration_affinity INTEGER DEFAULT 0,
+                illusion_affinity INTEGER DEFAULT 0,
+                enchantment_affinity INTEGER DEFAULT 0,
+
+                -- Known Spells (JSON)
+                known_spells TEXT DEFAULT '[]',
+
+                -- Concentration
+                concentration_spell TEXT,
+
+                -- Equipped Artifacts (JSON)
+                equipped_artifacts TEXT DEFAULT '[]',
+
+                -- Timestamps
+                updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+
+                FOREIGN KEY (player_id) REFERENCES players (player_id),
+                UNIQUE(player_id)
+            )
+        """)
+
+        # NPC Relationships table
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS npc_relationships (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                player_id TEXT NOT NULL,
+                npc_id TEXT NOT NULL,
+
+                -- Relationship Stats
+                reputation INTEGER DEFAULT 0,
+                current_mood TEXT DEFAULT 'neutral',
+                conversations_completed INTEGER DEFAULT 0,
+
+                -- Dialogue Progress
+                current_node_id TEXT DEFAULT 'greeting',
+                dialogue_history TEXT DEFAULT '[]',
+
+                -- Timestamps
+                first_met_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                last_interaction_at TEXT DEFAULT CURRENT_TIMESTAMP,
+
+                FOREIGN KEY (player_id) REFERENCES players (player_id),
+                UNIQUE(player_id, npc_id)
+            )
+        """)
+
+        # Political Events table
+        self.conn.execute("""
+            CREATE TABLE IF NOT EXISTS political_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+                -- Event Details
+                event_type TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+
+                -- Affected Kingdoms
+                primary_kingdom TEXT NOT NULL,
+                affected_kingdoms TEXT DEFAULT '[]',
+
+                -- Effects (JSON)
+                reputation_changes TEXT DEFAULT '{}',
+                status_changes TEXT DEFAULT '{}',
+                relation_changes TEXT DEFAULT '{}',
+
+                -- Turn Information
+                occurred_turn INTEGER,
+                triggered_by_player_id TEXT,
+
+                -- Timestamps
+                occurred_at TEXT DEFAULT CURRENT_TIMESTAMP,
+
+                FOREIGN KEY (triggered_by_player_id) REFERENCES players (player_id)
+            )
+        """)
+
         # Save Slots table
         self.conn.execute("""
             CREATE TABLE IF NOT EXISTS save_slots (
@@ -253,22 +344,24 @@ class GameDatabase:
                 player_id TEXT NOT NULL,
                 slot_number INTEGER NOT NULL,
                 save_name TEXT NOT NULL,
-                
+
                 -- Game State Snapshot (JSON)
                 player_state TEXT NOT NULL,
                 quest_state TEXT,
                 combat_state TEXT,
-                sanity_state TEXT,
+                magic_state TEXT,
+                npc_state TEXT,
+                political_state TEXT,
                 inventory_state TEXT,
-                
+
                 -- Metadata
                 scenario TEXT NOT NULL,
                 turn_number INTEGER NOT NULL,
                 playtime_minutes INTEGER DEFAULT 0,
-                
+
                 -- Timestamps
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                
+
                 FOREIGN KEY (player_id) REFERENCES players (player_id),
                 UNIQUE(player_id, slot_number)
             )

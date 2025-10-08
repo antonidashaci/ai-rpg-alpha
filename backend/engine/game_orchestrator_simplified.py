@@ -22,9 +22,6 @@ from .combat_system import (
     TacticalCombatEngine, CombatState, CombatOutcome,
     CombatEncounterLibrary, CombatDifficulty, ActionType
 )
-from .magic_system import MagicEngine, MageStats, Spell
-from .npc_dialogue import DialogueEngine, NPCDefinition
-from .political_system import PoliticalEngine, KingdomState
 from ..dao.game_database import GameDatabase
 
 
@@ -43,9 +40,6 @@ class GameOrchestrator:
         self.db = GameDatabase(db_path)
         self.quest_engine = QuestFrameworkEngine()
         self.combat_engine = TacticalCombatEngine()
-        self.magic_engine = MagicEngine()
-        self.dialogue_engine = DialogueEngine()
-        self.political_engine = PoliticalEngine()
         
         # Current game state
         self.player_id: Optional[str] = None
