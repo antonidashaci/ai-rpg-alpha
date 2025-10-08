@@ -575,6 +575,23 @@ class CombatEncounterLibrary:
     """Pre-designed combat encounters with multiple solution paths"""
     
     @staticmethod
+    def get_fantasy_encounter(encounter_type: str = "bandit"):
+        """Get fantasy encounter from library"""
+        from .fantasy_encounters import FantasyEncounters
+        
+        encounters = {
+            "dragon": FantasyEncounters.dragon_encounter,
+            "orc": FantasyEncounters.orc_warband,
+            "undead": FantasyEncounters.undead_legion,
+            "assassin": FantasyEncounters.royal_assassins,
+            "troll": FantasyEncounters.troll_bridge,
+            "giant": FantasyEncounters.frost_giant_raid,
+            "bandit": lambda: CombatEncounterLibrary.bandit_ambush()
+        }
+        
+        return encounters.get(encounter_type, encounters["bandit"])()
+    
+    @staticmethod
     def bandit_ambush() -> Tuple[List[Enemy], List[EnvironmentalFeature], str]:
         """
         Classic bandit ambush encounter
