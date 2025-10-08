@@ -1,0 +1,507 @@
+/**
+ * Enhanced AI-RPG-Alpha Styles
+ * 
+ * Includes:
+ * - Quest progression tracker
+ * - Combat visualization
+ * - Sanity meter (cosmic horror)
+ * - Enhanced UI components
+ */
+
+/* ========================================================================
+   QUEST PROGRESSION TRACKER
+   ======================================================================== */
+
+.quest-progress-bar {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid var(--accent-color, #d4af37);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.quest-act-indicator {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--accent-color, #d4af37);
+    text-align: center;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 25px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid #444;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #d4af37, #ffd700);
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+.progress-text {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+.milestone-indicator {
+    background: linear-gradient(135deg, #ff6b35, #ff9f1c);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-align: center;
+    margin: 10px 0;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.quest-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+    font-size: 0.85em;
+    color: #aaa;
+}
+
+.quest-stats span {
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+/* ========================================================================
+   COMBAT VISUALIZATION
+   ======================================================================== */
+
+#combatContainer {
+    background: rgba(139, 0, 0, 0.2);
+    border: 2px solid #8b0000;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 15px 0;
+}
+
+.combat-ui {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.combat-header {
+    text-align: center;
+    border-bottom: 2px solid #8b0000;
+    padding-bottom: 10px;
+}
+
+.combat-header h3 {
+    color: #ff4444;
+    font-size: 1.5em;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+}
+
+.combat-enemies {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.combat-enemies h4 {
+    grid-column: 1 / -1;
+    color: #ff6b6b;
+    margin: 0 0 10px 0;
+}
+
+.enemy-card {
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid #8b0000;
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.3s ease;
+}
+
+.enemy-card.alive {
+    border-color: #ff4444;
+    box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
+}
+
+.enemy-card.defeated {
+    opacity: 0.5;
+    border-color: #555;
+    filter: grayscale(100%);
+}
+
+.enemy-name {
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.enemy-health-bar {
+    position: relative;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid #444;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.health-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #8b0000, #ff4444);
+    transition: width 0.4s ease;
+}
+
+.health-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px black;
+}
+
+.combat-resources {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.combat-resources h4 {
+    color: #4a9eff;
+    margin: 0 0 10px 0;
+}
+
+.resource-display {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.resource-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 15px;
+    background: rgba(74, 158, 255, 0.1);
+    border: 1px solid #4a9eff;
+    border-radius: 5px;
+    min-width: 180px;
+}
+
+.resource-item span:first-child {
+    font-weight: bold;
+    color: #4a9eff;
+}
+
+.resource-item span:last-child {
+    color: #fff;
+}
+
+.combat-action-btn {
+    background: linear-gradient(135deg, #8b0000, #ff4444);
+    border: 2px solid #ff6666;
+}
+
+.combat-action-btn:hover {
+    background: linear-gradient(135deg, #ff4444, #ff6666);
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.6);
+}
+
+/* ========================================================================
+   SANITY METER (Cosmic Horror)
+   ======================================================================== */
+
+#sanitySection {
+    margin: 15px 0;
+    padding: 15px;
+    background: rgba(75, 0, 130, 0.2);
+    border: 2px solid #4b0082;
+    border-radius: 8px;
+}
+
+.resource-label {
+    display: block;
+    color: #9370db;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.resource-bar {
+    position: relative;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid #4b0082;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.resource-bar-fill {
+    height: 100%;
+    transition: width 0.4s ease;
+}
+
+.sanity-bar {
+    background: linear-gradient(90deg, #4b0082, #9370db);
+    box-shadow: 0 0 10px rgba(147, 112, 219, 0.5);
+}
+
+.sanity-bar.low {
+    background: linear-gradient(90deg, #8b0000, #ff4444);
+    animation: sanity-pulse 1.5s infinite;
+}
+
+@keyframes sanity-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.resource-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-weight: bold;
+    font-size: 0.9em;
+    text-shadow: 1px 1px 2px black;
+}
+
+#corruptionIndicator {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.corruption-level {
+    padding: 5px 10px;
+    background: rgba(139, 0, 0, 0.3);
+    border: 1px solid #8b0000;
+    border-radius: 5px;
+    color: #ff6b6b;
+    font-size: 0.85em;
+}
+
+.sanity-level {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.85em;
+    font-weight: bold;
+}
+
+.sanity-level.stable {
+    background: rgba(34, 139, 34, 0.3);
+    border: 1px solid #228b22;
+    color: #90ee90;
+}
+
+.sanity-level.disturbed {
+    background: rgba(255, 165, 0, 0.3);
+    border: 1px solid #ffa500;
+    color: #ffb347;
+}
+
+.sanity-level.fractured {
+    background: rgba(255, 140, 0, 0.3);
+    border: 1px solid #ff8c00;
+    color: #ffa07a;
+}
+
+.sanity-level.breaking {
+    background: rgba(255, 69, 0, 0.3);
+    border: 1px solid #ff4500;
+    color: #ff6347;
+}
+
+.sanity-level.shattered {
+    background: rgba(139, 0, 0, 0.5);
+    border: 1px solid #8b0000;
+    color: #ff0000;
+    animation: shattered-flicker 0.3s infinite;
+}
+
+@keyframes shattered-flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.forbidden-knowledge {
+    padding: 5px 10px;
+    background: rgba(75, 0, 130, 0.3);
+    border: 1px solid #4b0082;
+    border-radius: 5px;
+    color: #9370db;
+    font-size: 0.85em;
+}
+
+/* ========================================================================
+   ENHANCED CHOICE BUTTONS
+   ======================================================================== */
+
+.choice-btn {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    color: #ecf0f1;
+    border: 2px solid #d4af37;
+    border-radius: 8px;
+    padding: 15px 20px;
+    font-size: 1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 8px 0;
+    text-align: left;
+    width: 100%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.choice-btn:hover {
+    background: linear-gradient(135deg, #34495e, #2c3e50);
+    border-color: #ffd700;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(212, 175, 55, 0.4);
+}
+
+.choice-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ========================================================================
+   ACTION POINTS DISPLAY
+   ======================================================================== */
+
+.action-points {
+    display: flex;
+    gap: 8px;
+}
+
+.action-point {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #4a9eff;
+    background: rgba(74, 158, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.action-point.active {
+    background: linear-gradient(135deg, #4a9eff, #6bc1ff);
+    box-shadow: 0 0 10px rgba(74, 158, 255, 0.6);
+}
+
+/* ========================================================================
+   LOADING OVERLAY
+   ======================================================================== */
+
+#loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    text-align: center;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid rgba(212, 175, 55, 0.2);
+    border-top-color: #d4af37;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: #d4af37;
+    font-size: 1.2em;
+    font-style: italic;
+}
+
+/* ========================================================================
+   NARRATIVE TEXT FORMATTING
+   ======================================================================== */
+
+.narrative-content {
+    font-family: 'Crimson Text', 'Georgia', serif;
+    font-size: 1.1em;
+    line-height: 1.8;
+    color: #e0e0e0;
+}
+
+.narrative-content p {
+    margin-bottom: 1.5em;
+}
+
+.narrative-content strong {
+    color: #d4af37;
+    font-weight: bold;
+}
+
+.narrative-content em {
+    color: #9370db;
+    font-style: italic;
+}
+
+/* Cosmic horror text effects */
+.corrupted-text {
+    animation: text-glitch 0.3s infinite;
+}
+
+@keyframes text-glitch {
+    0%, 100% { text-shadow: 2px 2px 2px rgba(255, 0, 0, 0.5); }
+    50% { text-shadow: -2px -2px 2px rgba(0, 255, 0, 0.5); }
+}
+
+/* ========================================================================
+   RESPONSIVE DESIGN
+   ======================================================================== */
+
+@media (max-width: 768px) {
+    .combat-enemies {
+        grid-template-columns: 1fr;
+    }
+    
+    .resource-display {
+        flex-direction: column;
+    }
+    
+    .resource-item {
+        width: 100%;
+    }
+    
+    #corruptionIndicator {
+        flex-direction: column;
+    }
+}
+
