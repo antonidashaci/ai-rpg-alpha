@@ -9,6 +9,8 @@ Additional quests and story branches that expand the game world:
 - Moral choice dilemmas
 - Epic side adventures
 """
+from typing import List, Optional
+import random
 
 from .quest_framework import LongFormQuest, QuestMilestone, ChoiceImpact, QuestAct
 

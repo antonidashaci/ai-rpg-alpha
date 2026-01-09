@@ -11,6 +11,8 @@ Inspired by Skyrim quest design philosophy:
 
 All quest names and elements are original to The Northern Realms setting.
 """
+from typing import List, Optional, Dict
+import random
 
 from .quest_framework import LongFormQuest, QuestMilestone, ChoiceImpact, QuestAct
 from .side_quests import SideQuestLibrary

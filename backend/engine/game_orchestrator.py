@@ -20,7 +20,7 @@ from .quest_framework import (
 )
 from .combat_system import (
     TacticalCombatEngine, CombatState, CombatOutcome,
-    CombatEncounterLibrary, CombatDifficulty, ActionType
+    CombatEncounterLibrary, CombatDifficulty, ActionType, Enemy
 )
 from .magic_system import MagicEngine, MageStats, Spell
 from .npc_dialogue import DialogueEngine, NPCDefinition
@@ -30,9 +30,8 @@ from .additional_encounters import AdditionalEncounters
 from .skyrim_style_quests import SkyrimStyleQuestLibrary
 from .immersive_quest_system import ImmersiveQuestEngine, ImmersiveQuest, ImmersiveNarratives
 from .achievement_system import AchievementEngine, AchievementNotification
-from .audio_system import AudioSystem, AudioManager, MusicTrack, SoundEffect
 from ..dao.game_database import GameDatabase
-from ..ai.local_llm_client import LocalLLMManager
+from .combat_system import EnvironmentalFeature
 
 
 class GameOrchestrator:
@@ -54,10 +53,7 @@ class GameOrchestrator:
         self.dialogue_engine = DialogueEngine()
         self.political_engine = PoliticalEngine()
         self.achievement_engine = AchievementEngine()
-        self.audio_system = AudioSystem()
-        self.audio_manager = AudioManager(self.audio_system)
         self.immersive_quest_engine = ImmersiveQuestEngine()
-        self.llm_manager = LocalLLMManager()
 
         # Game state tracking for achievements
         self.game_stats = {
@@ -454,14 +450,10 @@ class GameOrchestrator:
             # Add quest to completed set for achievements
             self.game_stats["completed_quests"].add(quest.quest_id)
 
-            # Play quest completion audio
-            self.audio_manager.on_quest_complete()
-
             # Check for achievements
             newly_unlocked = self.achievement_engine.check_achievements(self.game_stats)
             if newly_unlocked:
                 for achievement in newly_unlocked:
-                    self.audio_manager.on_achievement_unlock()
                     # Add achievement notification to response
                     if "newly_unlocked_achievements" not in response:
                         response["newly_unlocked_achievements"] = []
@@ -491,32 +483,6 @@ class GameOrchestrator:
         if quest_result.get('milestone_reached'):
             milestone = quest_result.get('milestone', {})
             return f"**{milestone.get('title', 'Next Step')}**\n\n{milestone.get('description', '')}"
-
-        # Use local LLM for dynamic narrative generation
-        if self.llm_manager.is_available():
-            try:
-                # Build context for LLM
-                context = {
-                    'location': player_data.get('current_location', 'northern_realms'),
-                    'turn_number': quest_result.get('turn_number', 1),
-                    'risk_level': quest_result.get('current_act', 'setup'),
-                    'player_data': player_data,
-                    'quest_state': quest_result
-                }
-
-                # Generate response using local LLM
-                response = self.llm_manager.generate_response(
-                    player_name=player_data.get('name', 'Adventurer'),
-                    choice=player_action,
-                    context=context,
-                    scenario="northern_realms"
-                )
-
-                return response.get('narrative', f"You {player_action.lower()}.")
-
-            except Exception as e:
-                logging.error(f"Error generating LLM narrative: {e}")
-                # Fall back to simple narrative
 
         # Fallback narrative if LLM unavailable
         return f"You {player_action.lower()}. Your journey through the Northern Realms continues."
@@ -1002,36 +968,6 @@ class GameOrchestrator:
         if quest_result.get('milestone_reached'):
             milestone = quest_result.get('milestone', {})
             return milestone.get('choices', ["Continue north", "Explore the ruins", "Seek shelter"])
-
-        # Use local LLM for dynamic choice generation
-        if self.llm_manager.is_available():
-            try:
-                # Build context for LLM
-                context = {
-                    'location': player_data.get('current_location', 'northern_realms'),
-                    'turn_number': quest_result.get('turn_number', 1),
-                    'risk_level': quest_result.get('current_act', 'setup'),
-                    'player_data': player_data,
-                    'quest_state': quest_result
-                }
-
-                # Generate response using local LLM
-                response = self.llm_manager.generate_response(
-                    player_name=player_data.get('name', 'Adventurer'),
-                    choice="continue",  # Generic choice for context
-                    context=context,
-                    scenario="northern_realms"
-                )
-
-                return response.get('choices', [
-                    "Continue your journey north",
-                    "Explore the ancient ruins",
-                    "Visit the nearby village",
-                    "Rest and recover"
-                ])
-
-            except Exception as e:
-                logging.error(f"Error generating LLM choices: {e}")
 
         # Fallback choices if LLM unavailable
         return [

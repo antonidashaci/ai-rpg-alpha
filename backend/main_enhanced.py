@@ -20,11 +20,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import game systems
-from engine.game_orchestrator import GameOrchestrator
-from engine.magic_system import MagicEngine, MageStats, Spell
-from engine.npc_dialogue import DialogueEngine
-from engine.political_system import PoliticalEngine
-from ai.narrative_templates import NarrativeTemplates, NarrativeParser, FallbackNarratives
+from .engine.game_orchestrator import GameOrchestrator
 
 app = FastAPI(
     title="AI-RPG-Alpha Enhanced Backend",

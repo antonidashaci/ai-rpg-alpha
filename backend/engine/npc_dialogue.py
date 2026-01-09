@@ -357,7 +357,7 @@ class DialogueEngine:
             location="Stormwatch Keep",
             kingdom="stormwatch",
             base_reputation=0,
-            current_mood=DialogueMood.SUSPICIOUS,
+            current_mood=DialogueMood.NEUTRAL,
             known_secrets=["stormwatch_plot"],
             quest_knowledge=["dragon_attacks"]
         )

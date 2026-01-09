@@ -83,11 +83,11 @@ class Spell:
     # Casting requirements
     mana_cost: int
     casting_time: int  # Turns to cast
-    components: List[str] = field(default_factory=list)  # Verbal, somatic, material
     
     # Spell properties
     target_type: SpellTarget
     effect_type: SpellEffectType
+    components: List[str] = field(default_factory=list)  # Verbal, somatic, material
     damage: int = 0
     healing: int = 0
     duration: int = 0  # Turns effect lasts
